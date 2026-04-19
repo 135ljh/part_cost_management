@@ -1,0 +1,2417 @@
+{
+  "tables": [
+    {
+      "table_name": "bom",
+      "table_display_name": "物料清单（BOM）",
+      "table_description": "事务数据：父零件BOM版本与状态。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_id",
+          "description": "part 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "part.id"
+        },
+        {
+          "name": "bom_code",
+          "description": "bom 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "bom_name",
+          "description": "bom 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "version_no",
+          "description": "版本号",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "status",
+          "description": "状态",
+          "data_type": "VARCHAR(32)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_from",
+          "description": "effective_from",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_to",
+          "description": "effective_to",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "bom_item",
+      "table_display_name": "BOM明细（BOMItem）",
+      "table_description": "事务数据：BOM子件层级与用量。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "bom_id",
+          "description": "bom 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "bom.id"
+        },
+        {
+          "name": "parent_item_id",
+          "description": "parent_item 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "bom_item.id"
+        },
+        {
+          "name": "child_part_id",
+          "description": "child_part 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "part.id"
+        },
+        {
+          "name": "item_name_snapshot",
+          "description": "item_name_snapshot",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "item_number_snapshot",
+          "description": "item_number_snapshot",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "item_version_snapshot",
+          "description": "item_version_snapshot",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "quantity",
+          "description": "quantity",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "quantity_unit_id",
+          "description": "quantity_unit 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "is_outsourced",
+          "description": "is_outsourced",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "sort_no",
+          "description": "sort_no",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "cost_item",
+      "table_display_name": "成本计算（CostItem）",
+      "table_description": "报告数据：零件成本结果与追溯明细。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "BIGINT",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "calculation_name",
+          "description": "calculation 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_id",
+          "description": "part 关联ID",
+          "data_type": "BIGINT",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "part.id"
+        },
+        {
+          "name": "currency_id",
+          "description": "currency 关联ID",
+          "data_type": "BIGINT",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "currency.id"
+        },
+        {
+          "name": "unit_id",
+          "description": "unit 关联ID",
+          "data_type": "BIGINT",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "material_cost",
+          "description": "material_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "manufacturing_cost",
+          "description": "manufacturing_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "overhead_cost",
+          "description": "overhead_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "total_cost",
+          "description": "total_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "rule_version",
+          "description": "rule_version",
+          "data_type": "VARCHAR(32)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "trace_detail",
+          "description": "trace_detail",
+          "data_type": "TEXT",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "currency",
+      "table_display_name": "货币（Currency）",
+      "table_description": "主数据：币种定义与精度信息。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "currency_code",
+          "description": "currency 编码",
+          "data_type": "VARCHAR(16)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "currency_name",
+          "description": "currency 名称",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "currency_symbol",
+          "description": "currency_symbol",
+          "data_type": "VARCHAR(16)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "precision_scale",
+          "description": "precision_scale",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_base_currency",
+          "description": "is_base_currency",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "currency_exchange_rate",
+      "table_display_name": "汇率（ExchangeRate）",
+      "table_description": "主数据：币种间汇率维护。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "from_currency_id",
+          "description": "from_currency 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "currency.id"
+        },
+        {
+          "name": "to_currency_id",
+          "description": "to_currency 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "currency.id"
+        },
+        {
+          "name": "rate_type",
+          "description": "rate_type",
+          "data_type": "VARCHAR(32)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "exchange_rate",
+          "description": "exchange_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_date",
+          "description": "effective_date",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "source_name",
+          "description": "source 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "equipment",
+      "table_display_name": "设备（Equipment）",
+      "table_description": "主数据：设备台账。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_code",
+          "description": "equipment 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_name",
+          "description": "equipment 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "category_id",
+          "description": "category 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "equipment_category.id"
+        },
+        {
+          "name": "equipment_type",
+          "description": "equipment_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "manufacturer",
+          "description": "manufacturer",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "energy_type",
+          "description": "energy_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "specification_text",
+          "description": "specification_text",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "scale_desc",
+          "description": "scale_desc",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "equipment_category",
+      "table_display_name": "设备分类（EquipmentCategory）",
+      "table_description": "主数据：设备分类层级。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "category_code",
+          "description": "category 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "category_name",
+          "description": "category 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "parent_id",
+          "description": "parent 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "equipment_category.id"
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "equipment_cost_profile",
+      "table_display_name": "设备成本配置（EquipmentCostProfile）",
+      "table_description": "主数据：设备成本快照。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_id",
+          "description": "equipment 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "equipment.id"
+        },
+        {
+          "name": "profile_name",
+          "description": "profile 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_number_snapshot",
+          "description": "equipment_number_snapshot",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "manufacturer_snapshot",
+          "description": "manufacturer_snapshot",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "technical_reliability",
+          "description": "technical_reliability",
+          "data_type": "NUMERIC(10, 6)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "currency_id",
+          "description": "currency 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "currency.id"
+        },
+        {
+          "name": "acquisition_value",
+          "description": "acquisition_value",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "number_of_equipment",
+          "description": "number_of_equipment",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "annual_production_hours",
+          "description": "annual_production_hours",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_efficiency",
+          "description": "equipment_efficiency",
+          "data_type": "NUMERIC(10, 6)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "installation_expenses",
+          "description": "installation_expenses",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "foundation_expenses",
+          "description": "foundation_expenses",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "other_expenses",
+          "description": "other_expenses",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "residual_value",
+          "description": "residual_value",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_lifespan_years",
+          "description": "equipment_lifespan_years",
+          "data_type": "NUMERIC(10, 2)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "estimated_depreciation",
+          "description": "estimated_depreciation",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "interest_rate",
+          "description": "interest_rate",
+          "data_type": "NUMERIC(10, 6)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "total_area_required",
+          "description": "total_area_required",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "production_site_cost",
+          "description": "production_site_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "rated_power",
+          "description": "rated_power",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "electricity_usage_ratio",
+          "description": "electricity_usage_ratio",
+          "data_type": "NUMERIC(10, 6)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "power_cost_electricity",
+          "description": "power_cost_electricity",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "maintenance_cost",
+          "description": "maintenance_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "auxiliary_material_cost",
+          "description": "auxiliary_material_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "total_fixed_cost",
+          "description": "total_fixed_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "total_variable_cost",
+          "description": "total_variable_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "cost_per_unit_time",
+          "description": "cost_per_unit_time",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "hourly_rate",
+          "description": "hourly_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_cost",
+          "description": "equipment_cost",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "investment",
+          "description": "investment",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "asset_status",
+          "description": "asset_status",
+          "data_type": "VARCHAR(32)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_from",
+          "description": "effective_from",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_to",
+          "description": "effective_to",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "equipment_rate",
+      "table_display_name": "设备费率（EquipmentRate）",
+      "table_description": "主数据：设备费率与负担成本参数。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "rate_code",
+          "description": "rate 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_id",
+          "description": "equipment 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "equipment.id"
+        },
+        {
+          "name": "equipment_category_id",
+          "description": "equipment_category 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "equipment_category.id"
+        },
+        {
+          "name": "description",
+          "description": "description",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_type",
+          "description": "equipment_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "manpower",
+          "description": "manpower",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "labor_group",
+          "description": "labor_group",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "direct_labor",
+          "description": "direct_labor",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "direct_fringe",
+          "description": "direct_fringe",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "indirect_labor",
+          "description": "indirect_labor",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "indirect_fringe",
+          "description": "indirect_fringe",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "total_labor",
+          "description": "total_labor",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "depreciation",
+          "description": "depreciation",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "insurance",
+          "description": "insurance",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "floor_space",
+          "description": "floor_space",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "mro_labor",
+          "description": "mro_labor",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "utilities",
+          "description": "utilities",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "indirect_materials",
+          "description": "indirect_materials",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "other_burden",
+          "description": "other_burden",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "total_burden",
+          "description": "total_burden",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "total_minute_rate",
+          "description": "total_minute_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "investment",
+          "description": "investment",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "currency_id",
+          "description": "currency 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "currency.id"
+        },
+        {
+          "name": "effective_from",
+          "description": "effective_from",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_to",
+          "description": "effective_to",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "equipment_specification",
+      "table_display_name": "设备规格（EquipmentSpecification）",
+      "table_description": "主数据：设备规格键值。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "equipment_id",
+          "description": "equipment 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "equipment.id"
+        },
+        {
+          "name": "spec_key",
+          "description": "spec_key",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "spec_value",
+          "description": "spec_value",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "spec_unit_id",
+          "description": "spec_unit 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "sort_no",
+          "description": "sort_no",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "material",
+      "table_display_name": "物质（Material）",
+      "table_description": "主数据：物质台账与物性。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "material_code",
+          "description": "material 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "material_name",
+          "description": "material 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "category_id",
+          "description": "category 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "material_category.id"
+        },
+        {
+          "name": "density",
+          "description": "density",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "density_unit_id",
+          "description": "density_unit 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "default_quantity_unit_id",
+          "description": "default_quantity_unit 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "scrap_material_id",
+          "description": "scrap_material 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "material.id"
+        },
+        {
+          "name": "specification",
+          "description": "specification",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "material_category",
+      "table_display_name": "物质分类（MaterialCategory）",
+      "table_description": "主数据：物质分类层级。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "category_code",
+          "description": "category 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "category_name",
+          "description": "category 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "category_type",
+          "description": "category_type",
+          "data_type": "VARCHAR(32)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "parent_id",
+          "description": "parent 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "material_category.id"
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "material_price",
+      "table_display_name": "物质价格（MaterialPrice）",
+      "table_description": "事务数据：物质价格与供应商报价。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "material_id",
+          "description": "material 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "material.id"
+        },
+        {
+          "name": "region_id",
+          "description": "region 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "region.id"
+        },
+        {
+          "name": "supplier_name",
+          "description": "supplier 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "currency_id",
+          "description": "currency 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "currency.id"
+        },
+        {
+          "name": "price_unit_id",
+          "description": "price_unit 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "unit_price",
+          "description": "unit_price",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_from",
+          "description": "effective_from",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_to",
+          "description": "effective_to",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "source_name",
+          "description": "source 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "material_type",
+      "table_display_name": "物料类型（MaterialType）",
+      "table_description": "主数据：零件物料类型字典。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "material_type_code",
+          "description": "material_type 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "material_type_name",
+          "description": "material_type 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "description",
+          "description": "description",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "part",
+      "table_display_name": "零件主数据（Part）",
+      "table_description": "核心主数据：零件全生命周期业务对象。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_number",
+          "description": "part_number",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_name",
+          "description": "part 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_description",
+          "description": "part_description",
+          "data_type": "TEXT",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_type",
+          "description": "part_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "material_category_id",
+          "description": "material_category 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "material_category.id"
+        },
+        {
+          "name": "material_type_id",
+          "description": "material_type 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "material_type.id"
+        },
+        {
+          "name": "preferred_material_id",
+          "description": "preferred_material 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "material.id"
+        },
+        {
+          "name": "quantity_unit_id",
+          "description": "quantity_unit 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "surface_area",
+          "description": "surface_area",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "volume",
+          "description": "volume",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "cad_file_url",
+          "description": "cad_file_url",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "target_url",
+          "description": "target_url",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "legacy_result",
+          "description": "legacy_result",
+          "data_type": "TEXT",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "legacy_msg",
+          "description": "legacy_msg",
+          "data_type": "TEXT",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "lifecycle_status",
+          "description": "lifecycle_status",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "process_type",
+          "description": "process_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_version",
+          "description": "part_version",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "version_no",
+          "description": "版本号",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "part_attachment",
+      "table_display_name": "零件附件（PartAttachment）",
+      "table_description": "事务数据：零件文档与附件管理。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "part_id",
+          "description": "part 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "part.id"
+        },
+        {
+          "name": "file_name",
+          "description": "file 名称",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "file_url",
+          "description": "file_url",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "file_type",
+          "description": "file_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "file_size",
+          "description": "file_size",
+          "data_type": "BIGINT",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "source_type",
+          "description": "source_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "region",
+      "table_display_name": "区域（Region）",
+      "table_description": "主数据：国家/省市等区域层级。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "region_code",
+          "description": "region 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "region_name",
+          "description": "region 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "region_type",
+          "description": "region_type",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "parent_id",
+          "description": "parent 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "region.id"
+        },
+        {
+          "name": "level_no",
+          "description": "level_no",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "full_name",
+          "description": "full 名称",
+          "data_type": "VARCHAR(512)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "region_cost_profile",
+      "table_display_name": "区域成本配置（RegionCostProfile）",
+      "table_description": "主数据：区域人工、租金、水电等成本参数。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "profile_code",
+          "description": "profile 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "profile_name",
+          "description": "profile 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "region_id",
+          "description": "region 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "region.id"
+        },
+        {
+          "name": "supplier_name",
+          "description": "supplier 名称",
+          "data_type": "VARCHAR(128)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "supplier_code",
+          "description": "supplier 编码",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "currency_id",
+          "description": "currency 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "currency.id"
+        },
+        {
+          "name": "operating_worker_rate",
+          "description": "operating_worker_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "skilled_worker_rate",
+          "description": "skilled_worker_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "transfer_technician_rate",
+          "description": "transfer_technician_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "production_leader_rate",
+          "description": "production_leader_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "inspector_rate",
+          "description": "inspector_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "engineer_rate",
+          "description": "engineer_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "mold_fitter_rate",
+          "description": "mold_fitter_rate",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "cost_interest_rate",
+          "description": "cost_interest_rate",
+          "data_type": "NUMERIC(10, 6)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "benefits_one_shift",
+          "description": "benefits_one_shift",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "benefits_two_shift",
+          "description": "benefits_two_shift",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "benefits_three_shift",
+          "description": "benefits_three_shift",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "factory_rent",
+          "description": "factory_rent",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "office_fee",
+          "description": "office_fee",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "electricity_fee",
+          "description": "electricity_fee",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "water_fee",
+          "description": "water_fee",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "gas_fee",
+          "description": "gas_fee",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_from",
+          "description": "effective_from",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "effective_to",
+          "description": "effective_to",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "table_name": "unit",
+      "table_display_name": "单位（Unit）",
+      "table_description": "主数据：计量单位与换算体系。",
+      "fields": [
+        {
+          "name": "id",
+          "description": "主键ID",
+          "data_type": "INTEGER",
+          "is_primary_key": true,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "unit_code",
+          "description": "unit 编码",
+          "data_type": "VARCHAR(32)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "unit_name",
+          "description": "unit 名称",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "unit_display_name",
+          "description": "unit_display 名称",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "unit_category",
+          "description": "unit_category",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "measurement_system",
+          "description": "measurement_system",
+          "data_type": "VARCHAR(64)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "base_unit_id",
+          "description": "base_unit 关联ID",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": true,
+          "references": "unit.id"
+        },
+        {
+          "name": "unit_factor",
+          "description": "unit_factor",
+          "data_type": "NUMERIC(20, 8)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "sync_time",
+          "description": "sync_time",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "is_active",
+          "description": "是否启用",
+          "data_type": "INTEGER",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "remark",
+          "description": "备注",
+          "data_type": "VARCHAR(255)",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "created_at",
+          "description": "创建时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        },
+        {
+          "name": "updated_at",
+          "description": "更新时间",
+          "data_type": "DATETIME",
+          "is_primary_key": false,
+          "is_foreign_key": false,
+          "references": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local env
+.env
+
+# Logs / temp
+*.log
+*.out
+*.err
+*.tmp
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+*.py_failed
