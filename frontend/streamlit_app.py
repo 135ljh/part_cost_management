@@ -2351,7 +2351,7 @@ def _render_home_dashboard() -> None:
         .home-kpi-k { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:#6b7280; font-weight:700; }
         .home-kpi-v { margin-top:6px; font-size:1.55rem; color:#111827; font-family:'IBM Plex Mono', monospace; font-weight:600; }
         .home-kpi-s { margin-top:6px; color:#4b5563; font-size:.84rem; }
-        .home-panel { background:#fff; border:1px solid #d1d5db; border-radius:6px; padding:14px 14px 10px 14px; min-height:210px; }
+        .home-panel { background:#fff; border:1px solid #d1d5db; border-radius:6px; padding:12px 12px 10px 12px; min-height:0; }
         .home-panel h4 { margin:0 0 10px 0; color:#0f172a; font-size:1rem; font-weight:700; }
         </style>
         """,
@@ -2377,7 +2377,7 @@ def _render_home_dashboard() -> None:
             return 0
         return len(rows)
 
-    key_modules = ["parts", "bom", "bom_items", "cost_items", "material_types", "materials", "equipment", "currencies"]
+    key_modules = ["parts", "boms", "bom_items", "cost_items", "material_types", "materials", "equipment", "currencies"]
     counts: dict[str, int] = {}
     for mk in key_modules:
         if mk in MODULES:
@@ -2418,7 +2418,7 @@ def _render_home_dashboard() -> None:
         )
 
     st.write("")
-    p1, p2 = st.columns([0.62, 0.38], gap="medium")
+    p1, p2 = st.columns([0.66, 0.34], gap="medium")
     with p1:
         st.markdown("<div class='home-panel'><h4>📊 业务模块数据规模概览</h4></div>", unsafe_allow_html=True)
         size_rows = []
@@ -2426,12 +2426,13 @@ def _render_home_dashboard() -> None:
             size_rows.append({"模块": MODULES[mk]["name"], "分组": MODULES[mk]["group"], "记录数": _count_rows(mk)})
         df_size = pd.DataFrame(size_rows).sort_values(by="记录数", ascending=False).head(12)
         st.bar_chart(df_size.set_index("模块")["记录数"], use_container_width=True)
-        st.dataframe(df_size, use_container_width=True, hide_index=True)
+        st.dataframe(df_size.head(8), use_container_width=True, hide_index=True, height=300)
 
     with p2:
         st.markdown("<div class='home-panel'><h4>🧭 运营管控与快捷入口</h4></div>", unsafe_allow_html=True)
-        st.metric("成本计算记录", cost_count)
-        st.metric("BOM子项明细", counts.get("bom_items", 0))
+        m1, m2 = st.columns(2)
+        m1.metric("成本计算记录", cost_count)
+        m2.metric("BOM子项明细", counts.get("bom_items", 0))
         st.metric("附件资料", attach_count)
 
         qa, qb = st.columns(2)
@@ -2482,10 +2483,8 @@ def _render_home_dashboard() -> None:
     with c_right:
         st.markdown("#### ⏱️ 实时监控")
         t1, t2, t3 = st.columns(3)
-        t1.markdown(
-            f"<div class='stat-box'><div class='stat-k'>当前时间</div><div class='stat-v'>{datetime.now().strftime('%H:%M:%S')}</div></div>",
-            unsafe_allow_html=True,
-        )
+        with t1:
+            _live_time_stat()
         t2.markdown(
             f"<div class='stat-box'><div class='stat-k'>数据配置模块</div><div class='stat-v'>{len(data_module_keys)}</div></div>",
             unsafe_allow_html=True,
