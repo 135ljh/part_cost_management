@@ -2707,48 +2707,6 @@ def _render_metadata_map() -> None:
 
 
 def _render_ai_assistant_widget() -> None:
-    st.markdown(
-        """
-        <style>
-        .ai-chat-box {
-          border: 1px solid #d1d5db;
-          border-radius: 10px;
-          background: #f8fafc;
-          padding: 10px;
-          min-height: 220px;
-          max-height: 45vh;
-          overflow-y: auto;
-        }
-        .ai-row {
-          width: 100%;
-          display: flex;
-          margin: 8px 0;
-        }
-        .ai-row.user { justify-content: flex-end; }
-        .ai-row.assistant { justify-content: flex-start; }
-        .ai-bubble {
-          max-width: 84%;
-          border-radius: 12px;
-          padding: 8px 10px;
-          border: 1px solid #d1d5db;
-          white-space: pre-wrap;
-          line-height: 1.5;
-          font-size: .9rem;
-        }
-        .ai-bubble.user {
-          background: #005abb;
-          color: #ffffff;
-          border-color: #005abb;
-        }
-        .ai-bubble.assistant {
-          background: #ffffff;
-          color: #0f172a;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     def _append_qa(question: str) -> None:
         st.session_state.ai_chat_history.append({"role": "user", "content": question})
         ok, answer = _assistant_send_message(question)
@@ -2794,15 +2752,10 @@ def _render_ai_assistant_widget() -> None:
             _append_qa("请结合当前上下文，解释成本构成并给出3条优化建议。")
             st.rerun()
 
-        st.markdown("<div class='ai-chat-box'>", unsafe_allow_html=True)
         for msg in st.session_state.ai_chat_history[-18:]:
             role = "user" if msg.get("role") == "user" else "assistant"
-            safe_content = escape(str(msg.get("content", ""))).replace("\n", "<br>")
-            st.markdown(
-                f"<div class='ai-row {role}'><div class='ai-bubble {role}'>{safe_content}</div></div>",
-                unsafe_allow_html=True,
-            )
-        st.markdown("</div>", unsafe_allow_html=True)
+            with st.chat_message(role):
+                st.markdown(str(msg.get("content", "")))
 
         st.session_state.ai_draft = st.text_area(
             "向 AI 提问",
@@ -2900,8 +2853,7 @@ def _render_ai_assistant_widget() -> None:
 
           function bindDrag(handle, key) {
             const target = findFixedAncestor(handle);
-            if (!target || target.dataset.dragBound === "1") return;
-            target.dataset.dragBound = "1";
+            if (!target) return;
             handle.style.cursor = "move";
             handle.style.userSelect = "none";
             restorePosition(target, key);
@@ -2909,39 +2861,67 @@ def _render_ai_assistant_widget() -> None:
               restorePanelSize(target);
               persistPanelSize(target);
             }
-
-            let dragging = false, ox = 0, oy = 0;
-            handle.addEventListener("mousedown", function(e) {
-              dragging = true;
+            handle.onmousedown = function(e) {
+              handle.__idmeMoved = false;
               const r = target.getBoundingClientRect();
-              ox = e.clientX - r.left;
-              oy = e.clientY - r.top;
+              window.parent.__idmeDragState = {
+                target: target,
+                key: key,
+                ox: e.clientX - r.left,
+                oy: e.clientY - r.top,
+                handle: handle,
+              };
               e.preventDefault();
-            });
+            };
+            if (!handle.__idmeClickBound) {
+              handle.__idmeClickBound = true;
+              handle.addEventListener("click", function(e) {
+                if (handle.__idmeSuppressClick) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handle.__idmeSuppressClick = false;
+                }
+              }, true);
+            }
+          }
+          if (!window.parent.__idmeDragGlobalBound) {
+            window.parent.__idmeDragGlobalBound = true;
             doc.addEventListener("mousemove", function(e) {
-              if (!dragging) return;
-              const left = e.clientX - ox;
-              const top = e.clientY - oy;
-              target.style.left = left + "px";
-              target.style.top = top + "px";
-              target.style.right = "auto";
-              target.style.bottom = "auto";
-              window.parent.localStorage.setItem(key, JSON.stringify({left, top}));
+              const st = window.parent.__idmeDragState;
+              if (!st || !st.target) return;
+              const left = e.clientX - st.ox;
+              const top = e.clientY - st.oy;
+              if (Math.abs(e.movementX) + Math.abs(e.movementY) > 0) {
+                st.handle.__idmeMoved = true;
+              }
+              st.target.style.left = left + "px";
+              st.target.style.top = top + "px";
+              st.target.style.right = "auto";
+              st.target.style.bottom = "auto";
+              window.parent.localStorage.setItem(st.key, JSON.stringify({left, top}));
             });
-            doc.addEventListener("mouseup", function() { dragging = false; });
+            doc.addEventListener("mouseup", function() {
+              const st = window.parent.__idmeDragState;
+              if (st && st.handle && st.handle.__idmeMoved) {
+                st.handle.__idmeSuppressClick = true;
+              }
+              window.parent.__idmeDragState = null;
+            });
           }
 
-          setTimeout(function() {
+          function bindAll() {
             const bubbleBtn = Array.from(doc.querySelectorAll("button")).find(
-              b => (b.innerText || "").trim() === "🤖 AI助手"
+              b => (b.innerText || "").includes("AI助手")
             );
             if (bubbleBtn) bindDrag(bubbleBtn, K_BUBBLE);
 
             const panelTitle = Array.from(doc.querySelectorAll("h1,h2,h3,h4,div")).find(
-              d => (d.innerText || "").trim() === "AI助手面板"
+              d => (d.innerText || "").includes("AI助手面板")
             );
             if (panelTitle) bindDrag(panelTitle, K_PANEL);
-          }, 240);
+          }
+          setTimeout(bindAll, 240);
+          setInterval(bindAll, 1000);
         })();
         </script>
         """,

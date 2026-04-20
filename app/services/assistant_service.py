@@ -59,6 +59,16 @@ class AssistantService:
             "metadata_tables": metadata_context.get("table_names", []),
         }
 
+        direct_answer = self._direct_answer_by_message(clean_message, context_used)
+        if direct_answer:
+            return {
+                "answer": direct_answer,
+                "suggestions": self._suggestions_by_question(clean_message),
+                "model": settings.llm_model,
+                "provider_style": settings.llm_api_style,
+                "context_used": context_used,
+            }
+
         if not settings.llm_enabled:
             return self._fallback_answer(clean_message, context_used)
 
@@ -479,6 +489,15 @@ class AssistantService:
         msg = (message or "").strip()
         if not msg:
             return {}
+        msg_lower = msg.lower()
+        wants_all_parts = bool(
+            re.search(r"(所有|全部).{0,6}零件|零件.{0,8}(都列|列表|清单|列出)", msg)
+        ) or ("all part" in msg_lower)
+        wants_all_boms = ("所有bom" in msg_lower) or ("全部bom" in msg_lower) or ("bom清单" in msg_lower) or ("列出bom" in msg_lower) or ("all bom" in msg_lower)
+        wants_all_cost_items = ("所有成本计算" in msg) or ("全部成本计算" in msg) or ("成本计算清单" in msg) or ("列出成本计算" in msg) or ("all cost item" in msg_lower) or ("all cost" in msg_lower)
+        wants_all_materials = bool(re.search(r"(所有|全部).{0,4}(物料|材料)|(物料|材料).{0,6}(清单|列表|列出)", msg)) or ("all material" in msg_lower)
+        wants_all_equipment = bool(re.search(r"(所有|全部).{0,4}设备|设备.{0,6}(清单|列表|列出)", msg)) or ("all equipment" in msg_lower)
+        wants_all_regions = bool(re.search(r"(所有|全部).{0,4}区域|区域.{0,6}(清单|列表|列出)", msg)) or ("all region" in msg_lower)
 
         tokens = set(re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]{1,}", msg))
         tokens = {t for t in tokens if len(t) >= 2}
@@ -519,6 +538,17 @@ class AssistantService:
                     break
         if part_rows:
             out["parts"] = part_rows
+        if wants_all_parts:
+            part_all_rows = _query(
+                """
+                SELECT p.id, p.part_number AS part_code, p.part_name, p.lifecycle_status AS part_status, p.process_type AS lifecycle_stage
+                FROM part p
+                ORDER BY p.id ASC
+                LIMIT 300
+                """,
+                {},
+            )
+            out["parts_all"] = part_all_rows
 
         # 成本计算
         cost_rows = _query(
@@ -558,6 +588,17 @@ class AssistantService:
         )
         if bom_rows:
             out["boms"] = bom_rows
+        if wants_all_boms:
+            out["boms_all"] = _query(
+                """
+                SELECT b.id, b.bom_code, b.bom_name, p.part_number AS part_code, p.part_name, b.status
+                FROM bom b
+                LEFT JOIN part p ON p.id = b.part_id
+                ORDER BY b.id ASC
+                LIMIT 300
+                """,
+                {},
+            )
 
         bom_item_rows = _query(
             """
@@ -586,6 +627,16 @@ class AssistantService:
         )
         if mat_rows:
             out["materials"] = mat_rows
+        if wants_all_materials:
+            out["materials_all"] = _query(
+                """
+                SELECT m.id, m.material_code, m.material_name, m.density
+                FROM material m
+                ORDER BY m.id ASC
+                LIMIT 300
+                """,
+                {},
+            )
 
         eq_rows = _query(
             """
@@ -599,6 +650,16 @@ class AssistantService:
         )
         if eq_rows:
             out["equipment"] = eq_rows
+        if wants_all_equipment:
+            out["equipment_all"] = _query(
+                """
+                SELECT e.id, e.equipment_code, e.equipment_name, e.equipment_type
+                FROM equipment e
+                ORDER BY e.id ASC
+                LIMIT 300
+                """,
+                {},
+            )
 
         currency_rows = _query(
             """
@@ -614,6 +675,16 @@ class AssistantService:
         )
         if currency_rows:
             out["currencies"] = currency_rows
+        if ("所有币种" in msg) or ("全部币种" in msg) or ("币种列表" in msg) or ("currency list" in msg_lower):
+            out["currencies_all"] = _query(
+                """
+                SELECT c.id, c.currency_code, c.currency_name, c.currency_symbol
+                FROM currency c
+                ORDER BY c.id ASC
+                LIMIT 200
+                """,
+                {},
+            )
 
         unit_rows = _query(
             """
@@ -629,6 +700,16 @@ class AssistantService:
         )
         if unit_rows:
             out["units"] = unit_rows
+        if ("所有单位" in msg) or ("全部单位" in msg) or ("单位列表" in msg) or ("unit list" in msg_lower):
+            out["units_all"] = _query(
+                """
+                SELECT u.id, u.unit_code, u.unit_name, u.unit_category
+                FROM unit u
+                ORDER BY u.id ASC
+                LIMIT 300
+                """,
+                {},
+            )
 
         region_rows = _query(
             """
@@ -644,8 +725,110 @@ class AssistantService:
         )
         if region_rows:
             out["regions"] = region_rows
+        if wants_all_regions:
+            out["regions_all"] = _query(
+                """
+                SELECT r.id, r.region_code, r.region_name, r.region_type
+                FROM region r
+                ORDER BY r.id ASC
+                LIMIT 300
+                """,
+                {},
+            )
+        if wants_all_cost_items:
+            out["cost_items_all"] = _query(
+                """
+                SELECT ci.id, ci.calculation_name, p.part_number AS part_code, p.part_name,
+                       ci.total_cost, c.currency_code, u.unit_code
+                FROM cost_item ci
+                LEFT JOIN part p ON p.id = ci.part_id
+                LEFT JOIN currency c ON c.id = ci.currency_id
+                LEFT JOIN unit u ON u.id = ci.unit_id
+                ORDER BY ci.id ASC
+                LIMIT 300
+                """,
+                {},
+            )
 
         return out
+
+    def _direct_answer_by_message(self, clean_message: str, context_used: dict[str, Any]) -> str | None:
+        msg = clean_message.strip()
+        if not msg:
+            return None
+        hits = context_used.get("entity_hits") or {}
+        msg_lower = msg.lower()
+        wants_all_parts = bool(
+            re.search(r"(所有|全部).{0,6}零件|零件.{0,8}(都列|列表|清单|列出)", msg)
+        ) or ("all part" in msg_lower)
+        wants_all_boms = ("所有bom" in msg_lower) or ("全部bom" in msg_lower) or ("bom清单" in msg_lower) or ("列出bom" in msg_lower) or ("all bom" in msg_lower)
+        wants_all_cost_items = ("所有成本计算" in msg) or ("全部成本计算" in msg) or ("成本计算清单" in msg) or ("列出成本计算" in msg) or ("all cost item" in msg_lower) or ("all cost" in msg_lower)
+        wants_all_materials = bool(re.search(r"(所有|全部).{0,4}(物料|材料)|(物料|材料).{0,6}(清单|列表|列出)", msg)) or ("all material" in msg_lower)
+        wants_all_equipment = bool(re.search(r"(所有|全部).{0,4}设备|设备.{0,6}(清单|列表|列出)", msg)) or ("all equipment" in msg_lower)
+        wants_all_regions = bool(re.search(r"(所有|全部).{0,4}区域|区域.{0,6}(清单|列表|列出)", msg)) or ("all region" in msg_lower)
+
+        if wants_all_parts:
+            rows = hits.get("parts_all") or []
+            if not rows:
+                return "当前未查询到零件数据。"
+            lines = []
+            for i, r in enumerate(rows[:300], start=1):
+                lines.append(f"{i}. {r.get('part_name')} ({r.get('part_code')})")
+            return f"当前零件共 {len(rows)} 条，名称如下：\n" + "\n".join(lines)
+
+        if ("所有币种" in msg) or ("全部币种" in msg) or ("币种列表" in msg) or ("currency list" in msg_lower):
+            rows = hits.get("currencies_all") or []
+            if not rows:
+                return "当前未查询到币种数据。"
+            lines = [f"{i}. {r.get('currency_name')} ({r.get('currency_code')})" for i, r in enumerate(rows, start=1)]
+            return f"当前币种共 {len(rows)} 条：\n" + "\n".join(lines)
+
+        if ("所有单位" in msg) or ("全部单位" in msg) or ("单位列表" in msg) or ("unit list" in msg_lower):
+            rows = hits.get("units_all") or []
+            if not rows:
+                return "当前未查询到单位数据。"
+            lines = [f"{i}. {r.get('unit_name')} ({r.get('unit_code')})" for i, r in enumerate(rows, start=1)]
+            return f"当前单位共 {len(rows)} 条：\n" + "\n".join(lines)
+
+        if wants_all_boms:
+            rows = hits.get("boms_all") or []
+            if not rows:
+                return "当前未查询到BOM数据。"
+            lines = [f"{i}. {r.get('bom_name')} ({r.get('bom_code')}) - 父件:{r.get('part_name')}" for i, r in enumerate(rows, start=1)]
+            return f"当前BOM共 {len(rows)} 条：\n" + "\n".join(lines)
+
+        if wants_all_cost_items:
+            rows = hits.get("cost_items_all") or []
+            if not rows:
+                return "当前未查询到成本计算数据。"
+            lines = [
+                f"{i}. {r.get('calculation_name')} | {r.get('part_name')} ({r.get('part_code')}) | 总成本:{r.get('total_cost')} {r.get('currency_code')}/{r.get('unit_code')}"
+                for i, r in enumerate(rows, start=1)
+            ]
+            return f"当前成本计算共 {len(rows)} 条：\n" + "\n".join(lines)
+
+        if wants_all_materials:
+            rows = hits.get("materials_all") or []
+            if not rows:
+                return "当前未查询到物料数据。"
+            lines = [f"{i}. {r.get('material_name')} ({r.get('material_code')})" for i, r in enumerate(rows, start=1)]
+            return f"当前物料共 {len(rows)} 条：\n" + "\n".join(lines)
+
+        if wants_all_equipment:
+            rows = hits.get("equipment_all") or []
+            if not rows:
+                return "当前未查询到设备数据。"
+            lines = [f"{i}. {r.get('equipment_name')} ({r.get('equipment_code')})" for i, r in enumerate(rows, start=1)]
+            return f"当前设备共 {len(rows)} 条：\n" + "\n".join(lines)
+
+        if wants_all_regions:
+            rows = hits.get("regions_all") or []
+            if not rows:
+                return "当前未查询到区域数据。"
+            lines = [f"{i}. {r.get('region_name')} ({r.get('region_code')})" for i, r in enumerate(rows, start=1)]
+            return f"当前区域共 {len(rows)} 条：\n" + "\n".join(lines)
+
+        return None
 
     def _fallback_answer(
         self,
