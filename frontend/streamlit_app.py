@@ -2744,12 +2744,6 @@ def _render_ai_assistant_widget() -> None:
           background: #ffffff;
           color: #0f172a;
         }
-        .ai-panel-resizable {
-          resize: both;
-          overflow: auto;
-          min-width: 420px;
-          min-height: 420px;
-        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -2782,7 +2776,6 @@ def _render_ai_assistant_widget() -> None:
 
     panel = st.container()
     with panel:
-        st.markdown("<div class='ai-panel-resizable'>", unsafe_allow_html=True)
         st.markdown("### AI助手面板")
 
         if cap_ok:
@@ -2793,46 +2786,13 @@ def _render_ai_assistant_widget() -> None:
         else:
             st.caption("助手能力检测失败，将尝试按默认方式请求。")
 
-        with st.expander("窗口设置（稳定移动/缩放）", expanded=False):
-            c1, c2, c3, c4 = st.columns(4)
-            st.session_state.ai_panel_width = c1.slider("宽度(px)", 420, 980, int(st.session_state.ai_panel_width), 20, key="ai_panel_width_slider")
-            st.session_state.ai_panel_height = c2.slider("高度(px)", 420, 900, int(st.session_state.ai_panel_height), 20, key="ai_panel_height_slider")
-            st.session_state.ai_panel_right = c3.slider("距右(px)", 0, 1200, int(st.session_state.ai_panel_right), 10, key="ai_panel_right_slider")
-            st.session_state.ai_panel_bottom = c4.slider("距下(px)", 0, 900, int(st.session_state.ai_panel_bottom), 10, key="ai_panel_bottom_slider")
-
-            b1, b2, b3, b4, b5 = st.columns(5)
-            if b1.button("←", key="ai_move_left", use_container_width=True):
-                st.session_state.ai_panel_right += 20
-                st.rerun()
-            if b2.button("→", key="ai_move_right", use_container_width=True):
-                st.session_state.ai_panel_right = max(0, st.session_state.ai_panel_right - 20)
-                st.rerun()
-            if b3.button("↑", key="ai_move_up", use_container_width=True):
-                st.session_state.ai_panel_bottom = max(0, st.session_state.ai_panel_bottom - 20)
-                st.rerun()
-            if b4.button("↓", key="ai_move_down", use_container_width=True):
-                st.session_state.ai_panel_bottom += 20
-                st.rerun()
-            if b5.button("重置", key="ai_move_reset", use_container_width=True):
-                st.session_state.ai_panel_right = 18
-                st.session_state.ai_panel_bottom = 72
-                st.session_state.ai_panel_width = 560
-                st.session_state.ai_panel_height = 560
-                st.rerun()
-
-        q1, q2, q3 = st.columns([1, 1, 1.2])
+        q1, q2 = st.columns([1, 1])
         if q1.button("操作指南", key="ai_quick_guide", use_container_width=True):
             _append_qa("请给我当前系统的完整操作指南，按模块分步骤说明。")
             st.rerun()
         if q2.button("成本解读", key="ai_quick_cost", use_container_width=True):
             _append_qa("请结合当前上下文，解释成本构成并给出3条优化建议。")
             st.rerun()
-        quick_part = q3.text_input("零件占比查询", value="", key="ai_part_query_text", placeholder="输入零件编号或名称")
-        if q3.button("查询占比", key="ai_part_query_btn", use_container_width=True):
-            if quick_part.strip():
-                _append_qa(f"请查询零件 {quick_part.strip()} 的材料/制造/间接成本占比，并给出两条优化建议。")
-                st.rerun()
-            st.warning("请输入零件编号或名称。")
 
         st.markdown("<div class='ai-chat-box'>", unsafe_allow_html=True)
         for msg in st.session_state.ai_chat_history[-18:]:
@@ -2873,8 +2833,6 @@ def _render_ai_assistant_widget() -> None:
             st.session_state.ai_panel_open = False
             st.rerun()
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
         if _FLOAT_AVAILABLE:
             float_parent(
                 css=(
@@ -2886,6 +2844,110 @@ def _render_ai_assistant_widget() -> None:
                     "border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px;"
                 )
             )
+    st.components.v1.html(
+        """
+        <script>
+        (function() {
+          const doc = window.parent.document;
+          const K_BUBBLE = "idme_ai_bubble_pos";
+          const K_PANEL = "idme_ai_panel_pos";
+          const K_PANEL_SIZE = "idme_ai_panel_size";
+
+          function findFixedAncestor(el) {
+            let p = el;
+            for (let i = 0; i < 8 && p; i++) {
+              const s = window.parent.getComputedStyle(p);
+              if (s.position === "fixed") return p;
+              p = p.parentElement;
+            }
+            return null;
+          }
+
+          function restorePosition(node, key) {
+            const raw = window.parent.localStorage.getItem(key);
+            if (!raw) return;
+            try {
+              const d = JSON.parse(raw);
+              if (typeof d.left === "number" && typeof d.top === "number") {
+                node.style.left = d.left + "px";
+                node.style.top = d.top + "px";
+                node.style.right = "auto";
+                node.style.bottom = "auto";
+              }
+            } catch (e) {}
+          }
+
+          function restorePanelSize(node) {
+            const raw = window.parent.localStorage.getItem(K_PANEL_SIZE);
+            if (!raw) return;
+            try {
+              const d = JSON.parse(raw);
+              if (typeof d.width === "number") node.style.width = d.width + "px";
+              if (typeof d.height === "number") node.style.height = d.height + "px";
+            } catch (e) {}
+          }
+
+          function persistPanelSize(node) {
+            const ro = new window.parent.ResizeObserver(() => {
+              const rect = node.getBoundingClientRect();
+              window.parent.localStorage.setItem(K_PANEL_SIZE, JSON.stringify({
+                width: Math.round(rect.width),
+                height: Math.round(rect.height)
+              }));
+            });
+            ro.observe(node);
+          }
+
+          function bindDrag(handle, key) {
+            const target = findFixedAncestor(handle);
+            if (!target || target.dataset.dragBound === "1") return;
+            target.dataset.dragBound = "1";
+            handle.style.cursor = "move";
+            handle.style.userSelect = "none";
+            restorePosition(target, key);
+            if (key === K_PANEL) {
+              restorePanelSize(target);
+              persistPanelSize(target);
+            }
+
+            let dragging = false, ox = 0, oy = 0;
+            handle.addEventListener("mousedown", function(e) {
+              dragging = true;
+              const r = target.getBoundingClientRect();
+              ox = e.clientX - r.left;
+              oy = e.clientY - r.top;
+              e.preventDefault();
+            });
+            doc.addEventListener("mousemove", function(e) {
+              if (!dragging) return;
+              const left = e.clientX - ox;
+              const top = e.clientY - oy;
+              target.style.left = left + "px";
+              target.style.top = top + "px";
+              target.style.right = "auto";
+              target.style.bottom = "auto";
+              window.parent.localStorage.setItem(key, JSON.stringify({left, top}));
+            });
+            doc.addEventListener("mouseup", function() { dragging = false; });
+          }
+
+          setTimeout(function() {
+            const bubbleBtn = Array.from(doc.querySelectorAll("button")).find(
+              b => (b.innerText || "").trim() === "🤖 AI助手"
+            );
+            if (bubbleBtn) bindDrag(bubbleBtn, K_BUBBLE);
+
+            const panelTitle = Array.from(doc.querySelectorAll("h1,h2,h3,h4,div")).find(
+              d => (d.innerText || "").trim() === "AI助手面板"
+            );
+            if (panelTitle) bindDrag(panelTitle, K_PANEL);
+          }, 240);
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 def main() -> None:
     _init_state()

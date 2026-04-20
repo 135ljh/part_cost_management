@@ -48,12 +48,14 @@ class AssistantService:
         runtime_context = self._runtime_snapshot() if use_runtime_snapshot else {}
         part_context = self._part_context(context_data)
         explicit_lookup = self._lookup_cost_by_message(clean_message)
+        entity_hits = self._entity_lookup_by_message(clean_message)
 
         context_used = {
             "ui_context": context_data,
             "runtime_snapshot": runtime_context,
             "part_context": part_context,
             "explicit_part_cost_lookup": explicit_lookup,
+            "entity_hits": entity_hits,
             "metadata_tables": metadata_context.get("table_names", []),
         }
 
@@ -472,6 +474,178 @@ class AssistantService:
                 "overhead_cost": pct(overhead),
             },
         }
+
+    def _entity_lookup_by_message(self, message: str) -> dict[str, Any]:
+        msg = (message or "").strip()
+        if not msg:
+            return {}
+
+        tokens = set(re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]{1,}", msg))
+        tokens = {t for t in tokens if len(t) >= 2}
+        msg_like = f"%{msg.lower()}%"
+        out: dict[str, Any] = {}
+
+        def _query(sql_text: str, params: dict[str, Any]) -> list[dict[str, Any]]:
+            try:
+                rows = self.db.execute(text(sql_text), params).mappings().all()
+                return [dict(r) for r in rows]
+            except Exception:
+                return []
+
+        # 零件
+        part_rows = _query(
+            """
+            SELECT p.id, p.part_number AS part_code, p.part_name, p.lifecycle_status AS part_status, p.process_type AS lifecycle_stage
+            FROM part p
+            WHERE LOWER(p.part_number) LIKE :msg_like OR LOWER(p.part_name) LIKE :msg_like
+            ORDER BY p.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if not part_rows and tokens:
+            for tk in list(tokens)[:6]:
+                part_rows = _query(
+                    """
+                    SELECT p.id, p.part_number AS part_code, p.part_name, p.lifecycle_status AS part_status, p.process_type AS lifecycle_stage
+                    FROM part p
+                    WHERE UPPER(p.part_number)=UPPER(:tk) OR LOWER(p.part_name) LIKE :name_like
+                    ORDER BY p.id DESC
+                    LIMIT 8
+                    """,
+                    {"tk": tk, "name_like": f"%{tk.lower()}%"},
+                )
+                if part_rows:
+                    break
+        if part_rows:
+            out["parts"] = part_rows
+
+        # 成本计算
+        cost_rows = _query(
+            """
+            SELECT ci.id, ci.calculation_name, p.part_number AS part_code, p.part_name,
+                   ci.material_cost, ci.manufacturing_cost, ci.overhead_cost, ci.total_cost,
+                   c.currency_code, u.unit_code, ci.updated_at
+            FROM cost_item ci
+            LEFT JOIN part p ON p.id = ci.part_id
+            LEFT JOIN currency c ON c.id = ci.currency_id
+            LEFT JOIN unit u ON u.id = ci.unit_id
+            WHERE LOWER(ci.calculation_name) LIKE :msg_like
+               OR LOWER(p.part_number) LIKE :msg_like
+               OR LOWER(p.part_name) LIKE :msg_like
+            ORDER BY ci.updated_at DESC, ci.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if cost_rows:
+            out["cost_items"] = cost_rows
+
+        # BOM
+        bom_rows = _query(
+            """
+            SELECT b.id, b.bom_code, b.bom_name, p.part_number AS part_code, p.part_name, b.status
+            FROM bom b
+            LEFT JOIN part p ON p.id = b.part_id
+            WHERE LOWER(b.bom_code) LIKE :msg_like
+               OR LOWER(b.bom_name) LIKE :msg_like
+               OR LOWER(p.part_number) LIKE :msg_like
+               OR LOWER(p.part_name) LIKE :msg_like
+            ORDER BY b.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if bom_rows:
+            out["boms"] = bom_rows
+
+        bom_item_rows = _query(
+            """
+            SELECT bi.id, bi.bom_id, bi.item_number_snapshot, bi.item_name_snapshot, bi.quantity, bi.sort_no
+            FROM bom_item bi
+            WHERE LOWER(bi.item_number_snapshot) LIKE :msg_like
+               OR LOWER(bi.item_name_snapshot) LIKE :msg_like
+            ORDER BY bi.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if bom_item_rows:
+            out["bom_items"] = bom_item_rows
+
+        # 物料/设备
+        mat_rows = _query(
+            """
+            SELECT m.id, m.material_code, m.material_name, m.density
+            FROM material m
+            WHERE LOWER(m.material_code) LIKE :msg_like OR LOWER(m.material_name) LIKE :msg_like
+            ORDER BY m.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if mat_rows:
+            out["materials"] = mat_rows
+
+        eq_rows = _query(
+            """
+            SELECT e.id, e.equipment_code, e.equipment_name, e.equipment_type
+            FROM equipment e
+            WHERE LOWER(e.equipment_code) LIKE :msg_like OR LOWER(e.equipment_name) LIKE :msg_like
+            ORDER BY e.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if eq_rows:
+            out["equipment"] = eq_rows
+
+        currency_rows = _query(
+            """
+            SELECT c.id, c.currency_code, c.currency_name, c.currency_symbol
+            FROM currency c
+            WHERE LOWER(c.currency_code) LIKE :msg_like
+               OR LOWER(c.currency_name) LIKE :msg_like
+               OR LOWER(c.currency_symbol) LIKE :msg_like
+            ORDER BY c.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if currency_rows:
+            out["currencies"] = currency_rows
+
+        unit_rows = _query(
+            """
+            SELECT u.id, u.unit_code, u.unit_name, u.unit_category
+            FROM unit u
+            WHERE LOWER(u.unit_code) LIKE :msg_like
+               OR LOWER(u.unit_name) LIKE :msg_like
+               OR LOWER(u.unit_category) LIKE :msg_like
+            ORDER BY u.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if unit_rows:
+            out["units"] = unit_rows
+
+        region_rows = _query(
+            """
+            SELECT r.id, r.region_code, r.region_name, r.region_type, r.level_no
+            FROM region r
+            WHERE LOWER(r.region_code) LIKE :msg_like
+               OR LOWER(r.region_name) LIKE :msg_like
+               OR LOWER(r.region_type) LIKE :msg_like
+            ORDER BY r.id DESC
+            LIMIT 8
+            """,
+            {"msg_like": msg_like},
+        )
+        if region_rows:
+            out["regions"] = region_rows
+
+        return out
 
     def _fallback_answer(
         self,
