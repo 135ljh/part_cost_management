@@ -558,6 +558,7 @@ def _init_state() -> None:
         "ai_draft": "",
         "ai_float_inited": False,
         "ai_runtime_api_key": "",
+        "ai_panel_open": False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -2723,20 +2724,51 @@ def _render_ai_assistant_widget() -> None:
           color: #1f2937;
           font-size: .9rem;
         }
+        .ai-drag-title {
+          font-weight: 700;
+          font-size: .96rem;
+          color: #0f172a;
+          padding: 4px 0 8px 0;
+          border-bottom: 1px dashed #d1d5db;
+          margin-bottom: 8px;
+          cursor: move;
+          user-select: none;
+        }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    float_holder = st.container()
-    with float_holder:
-        with st.popover("🤖 AI助手", use_container_width=False):
-            cap_ok, cap_data = _request("GET", "/api/v1/assistant/capabilities")
+    cap_ok, cap_data = _request("GET", "/api/v1/assistant/capabilities")
+    llm_ready = bool(cap_ok and cap_data.get("llm_configured"))
+    runtime_ready = bool((st.session_state.get("ai_runtime_api_key") or "").strip())
+
+    # floating bubble button
+    bubble = st.container()
+    with bubble:
+        if st.button("🤖 AI助手", key="ai_toggle_panel_btn", use_container_width=True):
+            st.session_state.ai_panel_open = not st.session_state.ai_panel_open
+            st.rerun()
+        if _FLOAT_AVAILABLE:
+            float_parent(
+                css="right: 18px; bottom: 18px; z-index: 1301; width: 120px; background: transparent;"
+            )
+
+    if st.session_state.ai_panel_open:
+        panel = st.container()
+        with panel:
+            st.markdown("<div class='ai-drag-title'>AI助手面板</div>", unsafe_allow_html=True)
+
             if cap_ok:
                 model = cap_data.get("model", "-")
                 mode = cap_data.get("provider_style", "-")
-                conf = "已配置" if cap_data.get("llm_configured") else "未配置"
-                st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf}")
+                if llm_ready:
+                    conf_text = "系统已配置"
+                elif runtime_ready:
+                    conf_text = "会话已输入"
+                else:
+                    conf_text = "未配置"
+                st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf_text}")
             else:
                 st.caption("助手能力检测失败，将尝试按默认方式请求。")
 
@@ -2778,7 +2810,7 @@ def _render_ai_assistant_widget() -> None:
                 height=90,
                 placeholder="例如：解释 part / bom / cost_item 关系，或分析当前零件成本。",
             )
-            b1, b2 = st.columns(2)
+            b1, b2, b3 = st.columns(3)
             if b1.button("发送", key="ai_send_btn", type="primary", use_container_width=True):
                 text_to_send = (st.session_state.ai_draft or "").strip()
                 if text_to_send:
@@ -2800,11 +2832,72 @@ def _render_ai_assistant_widget() -> None:
                 ]
                 st.session_state.ai_draft = ""
                 st.rerun()
+            if b3.button("收起", key="ai_close_btn", use_container_width=True):
+                st.session_state.ai_panel_open = False
+                st.rerun()
 
-        if _FLOAT_AVAILABLE:
-            float_parent(css="right: 18px; bottom: 18px; z-index: 1200;")
-        else:
-            st.caption("提示：未安装 streamlit-float，助手可能不是悬浮显示。")
+            if _FLOAT_AVAILABLE:
+                float_parent(
+                    css=(
+                        "right: 18px; bottom: 72px; z-index: 1300; width: min(92vw, 560px); "
+                        "max-height: 78vh; overflow: auto; background: #ffffff; "
+                        "border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px;"
+                    )
+                )
+
+    # JS drag support for bubble + panel
+    st.components.v1.html(
+        """
+        <script>
+        (function() {
+          const doc = window.parent.document;
+          function makeDraggable(el, handle) {
+            if (!el || el.dataset.dragReady === "1") return;
+            el.dataset.dragReady = "1";
+            let moving = false, ox = 0, oy = 0;
+            const h = handle || el;
+            h.style.cursor = "move";
+            h.onmousedown = function(e) {
+              moving = true;
+              const rect = el.getBoundingClientRect();
+              ox = e.clientX - rect.left;
+              oy = e.clientY - rect.top;
+              doc.onmousemove = function(ev) {
+                if (!moving) return;
+                el.style.left = (ev.clientX - ox) + "px";
+                el.style.top = (ev.clientY - oy) + "px";
+                el.style.right = "auto";
+                el.style.bottom = "auto";
+              };
+              doc.onmouseup = function() {
+                moving = false;
+                doc.onmousemove = null;
+                doc.onmouseup = null;
+              };
+            };
+          }
+          setTimeout(() => {
+            const bubbleBtn = Array.from(doc.querySelectorAll("button")).find(
+              b => b.innerText && b.innerText.trim() === "🤖 AI助手"
+            );
+            if (bubbleBtn) {
+              const bubbleWrap = bubbleBtn.closest("div[data-testid='stButton']")?.parentElement?.parentElement;
+              if (bubbleWrap) makeDraggable(bubbleWrap, bubbleBtn);
+            }
+            const panelTitle = Array.from(doc.querySelectorAll("div")).find(
+              d => d.innerText && d.innerText.trim() === "AI助手面板"
+            );
+            if (panelTitle) {
+              const panelWrap = panelTitle.closest("div[data-testid='stMarkdownContainer']")?.parentElement?.parentElement?.parentElement;
+              if (panelWrap) makeDraggable(panelWrap, panelTitle);
+            }
+          }, 260);
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 
 def main() -> None:

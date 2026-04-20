@@ -199,9 +199,9 @@ class AssistantService:
         }
         return (
             f"用户问题:\n{clean_message}\n\n"
-            f"当前上下文(JSON):\n{json.dumps(context_used, ensure_ascii=False)}\n\n"
-            f"系统操作指南(JSON):\n{json.dumps(ops_guide, ensure_ascii=False)}\n\n"
-            f"元数据摘录(JSON):\n{json.dumps(metadata_context, ensure_ascii=False)}\n\n"
+            f"当前上下文(JSON):\n{json.dumps(context_used, ensure_ascii=False, default=str)}\n\n"
+            f"系统操作指南(JSON):\n{json.dumps(ops_guide, ensure_ascii=False, default=str)}\n\n"
+            f"元数据摘录(JSON):\n{json.dumps(metadata_context, ensure_ascii=False, default=str)}\n\n"
             "请基于以上内容回答。若涉及步骤，请给编号步骤。若涉及数据分析，请指出关键指标和建议。"
         )
 
