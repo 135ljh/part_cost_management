@@ -97,3 +97,20 @@ You can override it with environment variable `DATABASE_URL`.
 - `GET/POST /api/v1/equipment-specifications` and `GET/PUT/DELETE /api/v1/equipment-specifications/{spec_id}`
 - `GET/POST /api/v1/equipment-cost-profiles` and `GET/PUT/DELETE /api/v1/equipment-cost-profiles/{profile_id}`
 - `GET/POST /api/v1/material-prices` and `GET/PUT/DELETE /api/v1/material-prices/{price_id}`
+
+### 14) Built-in LLM Assistant
+
+New APIs:
+
+- `GET /api/v1/assistant/capabilities`
+- `POST /api/v1/assistant/chat`
+
+Environment variables (configure in local `.env`, do not commit secrets):
+
+- `LLM_ENABLED=true`
+- `LLM_BASE_URL=https://api.openai.com`
+- `LLM_API_KEY=<your_secret_key>`
+- `LLM_MODEL=gpt-4.1-mini`
+- `LLM_API_STYLE=openai` (`openai` or `openai-response`)
+- `LLM_TIMEOUT_SECONDS=60`
+- `LLM_TEMPERATURE=0.2`

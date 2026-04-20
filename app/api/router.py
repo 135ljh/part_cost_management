@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.assistant import router as assistant_router
 from app.api.bom import router as bom_router
 from app.api.bom_item import router as bom_item_router
 from app.api.cost_item import router as cost_item_router
@@ -22,6 +23,7 @@ from app.api.unit import router as unit_router
 
 
 api_router = APIRouter(prefix="/api/v1")
+api_router.include_router(assistant_router)
 api_router.include_router(unit_router)
 api_router.include_router(currency_router)
 api_router.include_router(exchange_rate_router)
