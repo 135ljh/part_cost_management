@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -15,9 +16,10 @@ class AssistantService:
         self.db = db
 
     def capabilities(self) -> dict[str, Any]:
+        api_key = self._effective_api_key()
         return {
             "llm_enabled": bool(settings.llm_enabled),
-            "llm_configured": bool(settings.llm_api_key),
+            "llm_configured": bool(api_key),
             "provider_style": settings.llm_api_style,
             "model": settings.llm_model,
             "features": [
@@ -34,6 +36,7 @@ class AssistantService:
         history: list[dict[str, str]],
         context: dict[str, Any] | None,
         use_runtime_snapshot: bool = True,
+        runtime_api_key: str | None = None,
     ) -> dict[str, Any]:
         clean_message = message.strip()
         if not clean_message:
@@ -54,7 +57,7 @@ class AssistantService:
         if not settings.llm_enabled:
             return self._fallback_answer(clean_message, context_used)
 
-        if not settings.llm_api_key:
+        if not self._effective_api_key(runtime_api_key):
             return self._fallback_answer(clean_message, context_used, no_key=True)
 
         system_prompt = self._build_system_prompt()
@@ -68,6 +71,7 @@ class AssistantService:
             system_prompt=system_prompt,
             history=history,
             user_prompt=user_prompt,
+            runtime_api_key=runtime_api_key,
         )
         return {
             "answer": answer,
@@ -77,11 +81,17 @@ class AssistantService:
             "context_used": context_used,
         }
 
-    def _invoke_llm(self, system_prompt: str, history: list[dict[str, str]], user_prompt: str) -> str:
+    def _invoke_llm(
+        self,
+        system_prompt: str,
+        history: list[dict[str, str]],
+        user_prompt: str,
+        runtime_api_key: str | None = None,
+    ) -> str:
         style = (settings.llm_api_style or "openai").lower()
         base_url = settings.llm_base_url.rstrip("/")
         headers = {
-            "Authorization": f"Bearer {settings.llm_api_key}",
+            "Authorization": f"Bearer {self._effective_api_key(runtime_api_key)}",
             "Content-Type": "application/json",
         }
 
@@ -377,6 +387,15 @@ class AssistantService:
             "请解释首页各指标代表的业务含义",
             "我在当前页面下一步应该做什么？",
         ]
+
+    def _effective_api_key(self, runtime_api_key: str | None = None) -> str | None:
+        return (
+            (runtime_api_key or "").strip()
+            or settings.llm_api_key
+            or os.getenv("LLM_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+            or os.getenv("IDME_LLM_API_KEY")
+        )
 
 
 def datetime_now_text() -> str:

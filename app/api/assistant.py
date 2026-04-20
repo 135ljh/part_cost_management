@@ -25,4 +25,5 @@ def chat(payload: AssistantChatRequest, db: Session = Depends(get_db)) -> Assist
         history=[m.model_dump() for m in payload.history],
         context=payload.context,
         use_runtime_snapshot=payload.use_runtime_snapshot,
+        runtime_api_key=payload.runtime_api_key,
     )

@@ -10,6 +10,11 @@ from matplotlib import font_manager as fm
 import pandas as pd
 import requests
 import streamlit as st
+try:
+    from streamlit_float import float_init, float_parent
+    _FLOAT_AVAILABLE = True
+except Exception:
+    _FLOAT_AVAILABLE = False
 
 
 # ---------------------------------------------------------------------
@@ -536,7 +541,7 @@ def _init_state() -> None:
     defaults = {
         "page_key": "overview_home",
         "search_text": "",
-        "api_base_url": os.getenv("IDME_API_BASE_URL", "http://127.0.0.1:8001"),
+        "api_base_url": os.getenv("IDME_API_BASE_URL", "http://127.0.0.1:8000"),
         "reload_token": 0,
         "logs": [],
         "part_bom_part_id": None,
@@ -551,6 +556,8 @@ def _init_state() -> None:
             }
         ],
         "ai_draft": "",
+        "ai_float_inited": False,
+        "ai_runtime_api_key": "",
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -568,11 +575,7 @@ def _backend_ok(base: str) -> bool:
 
 def _autofix_api_base_url() -> None:
     current = _base_url()
-    if _backend_ok(current):
-        return
-    for base in ("http://127.0.0.1:8001", "http://127.0.0.1:8000"):
-        if base.rstrip("/") == current.rstrip("/"):
-            continue
+    for base in ("http://127.0.0.1:8000", "http://127.0.0.1:8001"):
         if _backend_ok(base):
             st.session_state.api_base_url = base
             break
@@ -644,6 +647,7 @@ def _assistant_send_message(message: str) -> tuple[bool, str]:
         "history": history,
         "context": _assistant_page_context(),
         "use_runtime_snapshot": True,
+        "runtime_api_key": (st.session_state.get("ai_runtime_api_key") or "").strip() or None,
     }
     ok, resp = _request("POST", "/api/v1/assistant/chat", payload)
     if not ok:
@@ -2699,12 +2703,6 @@ def _render_ai_assistant_widget() -> None:
     st.markdown(
         """
         <style>
-        .ai-float-wrap [data-testid="stPopover"] {
-          position: fixed;
-          right: 22px;
-          bottom: 20px;
-          z-index: 1200;
-        }
         .ai-msg-box {
           border: 1px solid #d1d5db;
           border-radius: 8px;
@@ -2730,75 +2728,91 @@ def _render_ai_assistant_widget() -> None:
         unsafe_allow_html=True,
     )
 
-    st.markdown("<div class='ai-float-wrap'>", unsafe_allow_html=True)
-    with st.popover("🤖 AI助手", use_container_width=False):
-        cap_ok, cap_data = _request("GET", "/api/v1/assistant/capabilities")
-        if cap_ok:
-            model = cap_data.get("model", "-")
-            mode = cap_data.get("provider_style", "-")
-            conf = "已配置" if cap_data.get("llm_configured") else "未配置"
-            st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf}")
-        else:
-            st.caption("助手能力检测失败，将尝试按默认方式请求。")
+    float_holder = st.container()
+    with float_holder:
+        with st.popover("🤖 AI助手", use_container_width=False):
+            cap_ok, cap_data = _request("GET", "/api/v1/assistant/capabilities")
+            if cap_ok:
+                model = cap_data.get("model", "-")
+                mode = cap_data.get("provider_style", "-")
+                conf = "已配置" if cap_data.get("llm_configured") else "未配置"
+                st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf}")
+            else:
+                st.caption("助手能力检测失败，将尝试按默认方式请求。")
 
-        quick_col1, quick_col2 = st.columns(2)
-        if quick_col1.button("操作指南", key="ai_quick_guide", use_container_width=True):
-            q1 = "请给我当前系统的完整操作指南，按模块分步骤说明。"
-            st.session_state.ai_chat_history.append({"role": "user", "content": q1})
-            ok, answer = _assistant_send_message(q1)
-            st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
-            st.rerun()
-        if quick_col2.button("成本解读", key="ai_quick_cost", use_container_width=True):
-            q2 = "请结合当前上下文，解释成本构成并给出3条优化建议。"
-            st.session_state.ai_chat_history.append({"role": "user", "content": q2})
-            ok, answer = _assistant_send_message(q2)
-            st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
-            st.rerun()
+            st.session_state.ai_runtime_api_key = st.text_input(
+                "临时 API 密钥（仅当前会话内存）",
+                value=st.session_state.ai_runtime_api_key,
+                type="password",
+                key="ai_runtime_api_key_input",
+                placeholder="如已配置系统环境变量，可留空",
+            )
 
-        st.markdown("<div class='ai-msg-box'>", unsafe_allow_html=True)
-        for msg in st.session_state.ai_chat_history[-14:]:
-            role = msg.get("role", "assistant")
-            content = msg.get("content", "")
-            cls = "ai-msg-user" if role == "user" else "ai-msg-assistant"
-            prefix = "我" if role == "user" else "助手"
-            st.markdown(f"<div class='{cls}'><b>{prefix}：</b>{content}</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+            quick_col1, quick_col2 = st.columns(2)
+            if quick_col1.button("操作指南", key="ai_quick_guide", use_container_width=True):
+                q1 = "请给我当前系统的完整操作指南，按模块分步骤说明。"
+                st.session_state.ai_chat_history.append({"role": "user", "content": q1})
+                ok, answer = _assistant_send_message(q1)
+                st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
+                st.rerun()
+            if quick_col2.button("成本解读", key="ai_quick_cost", use_container_width=True):
+                q2 = "请结合当前上下文，解释成本构成并给出3条优化建议。"
+                st.session_state.ai_chat_history.append({"role": "user", "content": q2})
+                ok, answer = _assistant_send_message(q2)
+                st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
+                st.rerun()
 
-        st.session_state.ai_draft = st.text_area(
-            "向 AI 提问",
-            value=st.session_state.ai_draft,
-            key="ai_draft_textarea",
-            height=90,
-            placeholder="例如：解释 part / bom / cost_item 关系，或分析当前零件成本。",
-        )
-        b1, b2 = st.columns(2)
-        if b1.button("发送", key="ai_send_btn", type="primary", use_container_width=True):
-            text_to_send = (st.session_state.ai_draft or "").strip()
-            if text_to_send:
-                st.session_state.ai_chat_history.append({"role": "user", "content": text_to_send})
-                ok, answer = _assistant_send_message(text_to_send)
-                st.session_state.ai_chat_history.append(
-                    {"role": "assistant", "content": answer if ok else f"请求失败: {answer}"}
-                )
+            st.markdown("<div class='ai-msg-box'>", unsafe_allow_html=True)
+            for msg in st.session_state.ai_chat_history[-14:]:
+                role = msg.get("role", "assistant")
+                content = msg.get("content", "")
+                cls = "ai-msg-user" if role == "user" else "ai-msg-assistant"
+                prefix = "我" if role == "user" else "助手"
+                st.markdown(f"<div class='{cls}'><b>{prefix}：</b>{content}</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            st.session_state.ai_draft = st.text_area(
+                "向 AI 提问",
+                value=st.session_state.ai_draft,
+                key="ai_draft_textarea",
+                height=90,
+                placeholder="例如：解释 part / bom / cost_item 关系，或分析当前零件成本。",
+            )
+            b1, b2 = st.columns(2)
+            if b1.button("发送", key="ai_send_btn", type="primary", use_container_width=True):
+                text_to_send = (st.session_state.ai_draft or "").strip()
+                if text_to_send:
+                    st.session_state.ai_chat_history.append({"role": "user", "content": text_to_send})
+                    ok, answer = _assistant_send_message(text_to_send)
+                    st.session_state.ai_chat_history.append(
+                        {"role": "assistant", "content": answer if ok else f"请求失败: {answer}"}
+                    )
+                    st.session_state.ai_draft = ""
+                    st.rerun()
+                else:
+                    st.warning("请输入问题后再发送。")
+            if b2.button("清空会话", key="ai_clear_btn", use_container_width=True):
+                st.session_state.ai_chat_history = [
+                    {
+                        "role": "assistant",
+                        "content": "会话已清空。你可以继续提问：操作指南、数据地图、成本分析建议。",
+                    }
+                ]
                 st.session_state.ai_draft = ""
                 st.rerun()
-            else:
-                st.warning("请输入问题后再发送。")
-        if b2.button("清空会话", key="ai_clear_btn", use_container_width=True):
-            st.session_state.ai_chat_history = [
-                {
-                    "role": "assistant",
-                    "content": "会话已清空。你可以继续提问：操作指南、数据地图、成本分析建议。",
-                }
-            ]
-            st.session_state.ai_draft = ""
-            st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+
+        if _FLOAT_AVAILABLE:
+            float_parent(css="right: 18px; bottom: 18px; z-index: 1200;")
+        else:
+            st.caption("提示：未安装 streamlit-float，助手可能不是悬浮显示。")
 
 
 def main() -> None:
     _init_state()
     _autofix_api_base_url()
+    if _FLOAT_AVAILABLE and not st.session_state.ai_float_inited:
+        float_init()
+        st.session_state.ai_float_inited = True
 
     st.sidebar.markdown(
         """

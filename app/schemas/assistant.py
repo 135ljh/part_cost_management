@@ -13,6 +13,7 @@ class AssistantChatRequest(BaseModel):
     history: list[AssistantMessage] = Field(default_factory=list, description="Chat history")
     context: dict[str, Any] | None = Field(default=None, description="UI/runtime context")
     use_runtime_snapshot: bool = Field(default=True, description="Attach runtime stats")
+    runtime_api_key: str | None = Field(default=None, description="Optional session API key override")
 
 
 class AssistantChatResponse(BaseModel):
