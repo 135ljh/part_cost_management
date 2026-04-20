@@ -1,7 +1,8 @@
-﻿import io
+import io
 import json
 import os
 import re
+from html import escape
 from datetime import datetime
 from typing import Any
 
@@ -557,8 +558,13 @@ def _init_state() -> None:
         ],
         "ai_draft": "",
         "ai_float_inited": False,
-        "ai_runtime_api_key": "",
         "ai_panel_open": False,
+        "ai_panel_right": 18,
+        "ai_panel_bottom": 72,
+        "ai_panel_width": 560,
+        "ai_panel_height": 560,
+        "ai_bubble_right": 18,
+        "ai_bubble_bottom": 18,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -628,6 +634,7 @@ def _assistant_page_context() -> dict[str, Any]:
         "current_page_key": st.session_state.page_key,
         "search_text": st.session_state.search_text,
         "selected_part_id": st.session_state.get("part_cost_part_id") or st.session_state.get("part_bom_part_id"),
+        "selected_part_hint": st.session_state.get("part_bom_part_label", ""),
         "selected_cost_item_id": st.session_state.get("part_cost_item_id"),
         "selected_attachment_part_id": st.session_state.get("part_attachment_part_id"),
     }
@@ -648,7 +655,6 @@ def _assistant_send_message(message: str) -> tuple[bool, str]:
         "history": history,
         "context": _assistant_page_context(),
         "use_runtime_snapshot": True,
-        "runtime_api_key": (st.session_state.get("ai_runtime_api_key") or "").strip() or None,
     }
     ok, resp = _request("POST", "/api/v1/assistant/chat", payload)
     if not ok:
@@ -2704,46 +2710,59 @@ def _render_ai_assistant_widget() -> None:
     st.markdown(
         """
         <style>
-        .ai-msg-box {
+        .ai-chat-box {
           border: 1px solid #d1d5db;
-          border-radius: 8px;
-          background: #ffffff;
-          padding: 8px 10px;
-          max-height: 320px;
+          border-radius: 10px;
+          background: #f8fafc;
+          padding: 10px;
+          min-height: 220px;
+          max-height: 45vh;
           overflow-y: auto;
         }
-        .ai-msg-user {
-          margin: 6px 0;
-          text-align: right;
-          color: #0f172a;
+        .ai-row {
+          width: 100%;
+          display: flex;
+          margin: 8px 0;
+        }
+        .ai-row.user { justify-content: flex-end; }
+        .ai-row.assistant { justify-content: flex-start; }
+        .ai-bubble {
+          max-width: 84%;
+          border-radius: 12px;
+          padding: 8px 10px;
+          border: 1px solid #d1d5db;
+          white-space: pre-wrap;
+          line-height: 1.5;
           font-size: .9rem;
         }
-        .ai-msg-assistant {
-          margin: 6px 0;
-          text-align: left;
-          color: #1f2937;
-          font-size: .9rem;
+        .ai-bubble.user {
+          background: #005abb;
+          color: #ffffff;
+          border-color: #005abb;
         }
-        .ai-drag-title {
-          font-weight: 700;
-          font-size: .96rem;
+        .ai-bubble.assistant {
+          background: #ffffff;
           color: #0f172a;
-          padding: 4px 0 8px 0;
-          border-bottom: 1px dashed #d1d5db;
-          margin-bottom: 8px;
-          cursor: move;
-          user-select: none;
+        }
+        .ai-panel-resizable {
+          resize: both;
+          overflow: auto;
+          min-width: 420px;
+          min-height: 420px;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
+    def _append_qa(question: str) -> None:
+        st.session_state.ai_chat_history.append({"role": "user", "content": question})
+        ok, answer = _assistant_send_message(question)
+        st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
+
     cap_ok, cap_data = _request("GET", "/api/v1/assistant/capabilities")
     llm_ready = bool(cap_ok and cap_data.get("llm_configured"))
-    runtime_ready = bool((st.session_state.get("ai_runtime_api_key") or "").strip())
 
-    # floating bubble button
     bubble = st.container()
     with bubble:
         if st.button("🤖 AI助手", key="ai_toggle_panel_btn", use_container_width=True):
@@ -2751,154 +2770,122 @@ def _render_ai_assistant_widget() -> None:
             st.rerun()
         if _FLOAT_AVAILABLE:
             float_parent(
-                css="right: 18px; bottom: 18px; z-index: 1301; width: 120px; background: transparent;"
+                css=(
+                    f"right: {int(st.session_state.ai_bubble_right)}px; "
+                    f"bottom: {int(st.session_state.ai_bubble_bottom)}px; "
+                    "z-index: 1301; width: 126px; background: transparent;"
+                )
             )
 
-    if st.session_state.ai_panel_open:
-        panel = st.container()
-        with panel:
-            st.markdown("<div class='ai-drag-title'>AI助手面板</div>", unsafe_allow_html=True)
+    if not st.session_state.ai_panel_open:
+        return
 
-            if cap_ok:
-                model = cap_data.get("model", "-")
-                mode = cap_data.get("provider_style", "-")
-                if llm_ready:
-                    conf_text = "系统已配置"
-                elif runtime_ready:
-                    conf_text = "会话已输入"
-                else:
-                    conf_text = "未配置"
-                st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf_text}")
-            else:
-                st.caption("助手能力检测失败，将尝试按默认方式请求。")
+    panel = st.container()
+    with panel:
+        st.markdown("<div class='ai-panel-resizable'>", unsafe_allow_html=True)
+        st.markdown("### AI助手面板")
 
-            st.session_state.ai_runtime_api_key = st.text_input(
-                "临时 API 密钥（仅当前会话内存）",
-                value=st.session_state.ai_runtime_api_key,
-                type="password",
-                key="ai_runtime_api_key_input",
-                placeholder="如已配置系统环境变量，可留空",
-            )
+        if cap_ok:
+            model = cap_data.get("model", "-")
+            mode = cap_data.get("provider_style", "-")
+            conf_text = "系统已配置" if llm_ready else "未配置"
+            st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf_text}")
+        else:
+            st.caption("助手能力检测失败，将尝试按默认方式请求。")
 
-            quick_col1, quick_col2 = st.columns(2)
-            if quick_col1.button("操作指南", key="ai_quick_guide", use_container_width=True):
-                q1 = "请给我当前系统的完整操作指南，按模块分步骤说明。"
-                st.session_state.ai_chat_history.append({"role": "user", "content": q1})
-                ok, answer = _assistant_send_message(q1)
-                st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
+        with st.expander("窗口设置（稳定移动/缩放）", expanded=False):
+            c1, c2, c3, c4 = st.columns(4)
+            st.session_state.ai_panel_width = c1.slider("宽度(px)", 420, 980, int(st.session_state.ai_panel_width), 20, key="ai_panel_width_slider")
+            st.session_state.ai_panel_height = c2.slider("高度(px)", 420, 900, int(st.session_state.ai_panel_height), 20, key="ai_panel_height_slider")
+            st.session_state.ai_panel_right = c3.slider("距右(px)", 0, 1200, int(st.session_state.ai_panel_right), 10, key="ai_panel_right_slider")
+            st.session_state.ai_panel_bottom = c4.slider("距下(px)", 0, 900, int(st.session_state.ai_panel_bottom), 10, key="ai_panel_bottom_slider")
+
+            b1, b2, b3, b4, b5 = st.columns(5)
+            if b1.button("←", key="ai_move_left", use_container_width=True):
+                st.session_state.ai_panel_right += 20
                 st.rerun()
-            if quick_col2.button("成本解读", key="ai_quick_cost", use_container_width=True):
-                q2 = "请结合当前上下文，解释成本构成并给出3条优化建议。"
-                st.session_state.ai_chat_history.append({"role": "user", "content": q2})
-                ok, answer = _assistant_send_message(q2)
-                st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
+            if b2.button("→", key="ai_move_right", use_container_width=True):
+                st.session_state.ai_panel_right = max(0, st.session_state.ai_panel_right - 20)
+                st.rerun()
+            if b3.button("↑", key="ai_move_up", use_container_width=True):
+                st.session_state.ai_panel_bottom = max(0, st.session_state.ai_panel_bottom - 20)
+                st.rerun()
+            if b4.button("↓", key="ai_move_down", use_container_width=True):
+                st.session_state.ai_panel_bottom += 20
+                st.rerun()
+            if b5.button("重置", key="ai_move_reset", use_container_width=True):
+                st.session_state.ai_panel_right = 18
+                st.session_state.ai_panel_bottom = 72
+                st.session_state.ai_panel_width = 560
+                st.session_state.ai_panel_height = 560
                 st.rerun()
 
-            st.markdown("<div class='ai-msg-box'>", unsafe_allow_html=True)
-            for msg in st.session_state.ai_chat_history[-14:]:
-                role = msg.get("role", "assistant")
-                content = msg.get("content", "")
-                cls = "ai-msg-user" if role == "user" else "ai-msg-assistant"
-                prefix = "我" if role == "user" else "助手"
-                st.markdown(f"<div class='{cls}'><b>{prefix}：</b>{content}</div>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+        q1, q2, q3 = st.columns([1, 1, 1.2])
+        if q1.button("操作指南", key="ai_quick_guide", use_container_width=True):
+            _append_qa("请给我当前系统的完整操作指南，按模块分步骤说明。")
+            st.rerun()
+        if q2.button("成本解读", key="ai_quick_cost", use_container_width=True):
+            _append_qa("请结合当前上下文，解释成本构成并给出3条优化建议。")
+            st.rerun()
+        quick_part = q3.text_input("零件占比查询", value="", key="ai_part_query_text", placeholder="输入零件编号或名称")
+        if q3.button("查询占比", key="ai_part_query_btn", use_container_width=True):
+            if quick_part.strip():
+                _append_qa(f"请查询零件 {quick_part.strip()} 的材料/制造/间接成本占比，并给出两条优化建议。")
+                st.rerun()
+            st.warning("请输入零件编号或名称。")
 
-            st.session_state.ai_draft = st.text_area(
-                "向 AI 提问",
-                value=st.session_state.ai_draft,
-                key="ai_draft_textarea",
-                height=90,
-                placeholder="例如：解释 part / bom / cost_item 关系，或分析当前零件成本。",
+        st.markdown("<div class='ai-chat-box'>", unsafe_allow_html=True)
+        for msg in st.session_state.ai_chat_history[-18:]:
+            role = "user" if msg.get("role") == "user" else "assistant"
+            safe_content = escape(str(msg.get("content", ""))).replace("\n", "<br>")
+            st.markdown(
+                f"<div class='ai-row {role}'><div class='ai-bubble {role}'>{safe_content}</div></div>",
+                unsafe_allow_html=True,
             )
-            b1, b2, b3 = st.columns(3)
-            if b1.button("发送", key="ai_send_btn", type="primary", use_container_width=True):
-                text_to_send = (st.session_state.ai_draft or "").strip()
-                if text_to_send:
-                    st.session_state.ai_chat_history.append({"role": "user", "content": text_to_send})
-                    ok, answer = _assistant_send_message(text_to_send)
-                    st.session_state.ai_chat_history.append(
-                        {"role": "assistant", "content": answer if ok else f"请求失败: {answer}"}
-                    )
-                    st.session_state.ai_draft = ""
-                    st.rerun()
-                else:
-                    st.warning("请输入问题后再发送。")
-            if b2.button("清空会话", key="ai_clear_btn", use_container_width=True):
-                st.session_state.ai_chat_history = [
-                    {
-                        "role": "assistant",
-                        "content": "会话已清空。你可以继续提问：操作指南、数据地图、成本分析建议。",
-                    }
-                ]
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.session_state.ai_draft = st.text_area(
+            "向 AI 提问",
+            value=st.session_state.ai_draft,
+            key="ai_draft_textarea",
+            height=130,
+            placeholder="例如：查询 DEMO-PART-ASM-300 的成本占比，并比较优化优先级。",
+        )
+
+        b1, b2, b3 = st.columns(3)
+        if b1.button("发送", key="ai_send_btn", type="primary", use_container_width=True):
+            text_to_send = (st.session_state.ai_draft or "").strip()
+            if text_to_send:
+                _append_qa(text_to_send)
                 st.session_state.ai_draft = ""
                 st.rerun()
-            if b3.button("收起", key="ai_close_btn", use_container_width=True):
-                st.session_state.ai_panel_open = False
-                st.rerun()
+            st.warning("请输入问题后再发送。")
+        if b2.button("清空会话", key="ai_clear_btn", use_container_width=True):
+            st.session_state.ai_chat_history = [
+                {
+                    "role": "assistant",
+                    "content": "会话已清空。你可以继续提问：操作指南、数据地图、零件成本占比分析。",
+                }
+            ]
+            st.session_state.ai_draft = ""
+            st.rerun()
+        if b3.button("收起", key="ai_close_btn", use_container_width=True):
+            st.session_state.ai_panel_open = False
+            st.rerun()
 
-            if _FLOAT_AVAILABLE:
-                float_parent(
-                    css=(
-                        "right: 18px; bottom: 72px; z-index: 1300; width: min(92vw, 560px); "
-                        "max-height: 78vh; overflow: auto; background: #ffffff; "
-                        "border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px;"
-                    )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        if _FLOAT_AVAILABLE:
+            float_parent(
+                css=(
+                    f"right: {int(st.session_state.ai_panel_right)}px; "
+                    f"bottom: {int(st.session_state.ai_panel_bottom)}px; "
+                    f"width: min(94vw, {int(st.session_state.ai_panel_width)}px); "
+                    f"height: min(90vh, {int(st.session_state.ai_panel_height)}px); "
+                    "z-index: 1300; overflow: auto; background: #ffffff; "
+                    "border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px;"
                 )
-
-    # JS drag support for bubble + panel
-    st.components.v1.html(
-        """
-        <script>
-        (function() {
-          const doc = window.parent.document;
-          function makeDraggable(el, handle) {
-            if (!el || el.dataset.dragReady === "1") return;
-            el.dataset.dragReady = "1";
-            let moving = false, ox = 0, oy = 0;
-            const h = handle || el;
-            h.style.cursor = "move";
-            h.onmousedown = function(e) {
-              moving = true;
-              const rect = el.getBoundingClientRect();
-              ox = e.clientX - rect.left;
-              oy = e.clientY - rect.top;
-              doc.onmousemove = function(ev) {
-                if (!moving) return;
-                el.style.left = (ev.clientX - ox) + "px";
-                el.style.top = (ev.clientY - oy) + "px";
-                el.style.right = "auto";
-                el.style.bottom = "auto";
-              };
-              doc.onmouseup = function() {
-                moving = false;
-                doc.onmousemove = null;
-                doc.onmouseup = null;
-              };
-            };
-          }
-          setTimeout(() => {
-            const bubbleBtn = Array.from(doc.querySelectorAll("button")).find(
-              b => b.innerText && b.innerText.trim() === "🤖 AI助手"
-            );
-            if (bubbleBtn) {
-              const bubbleWrap = bubbleBtn.closest("div[data-testid='stButton']")?.parentElement?.parentElement;
-              if (bubbleWrap) makeDraggable(bubbleWrap, bubbleBtn);
-            }
-            const panelTitle = Array.from(doc.querySelectorAll("div")).find(
-              d => d.innerText && d.innerText.trim() === "AI助手面板"
-            );
-            if (panelTitle) {
-              const panelWrap = panelTitle.closest("div[data-testid='stMarkdownContainer']")?.parentElement?.parentElement?.parentElement;
-              if (panelWrap) makeDraggable(panelWrap, panelTitle);
-            }
-          }, 260);
-        })();
-        </script>
-        """,
-        height=0,
-        width=0,
-    )
-
+            )
 
 def main() -> None:
     _init_state()

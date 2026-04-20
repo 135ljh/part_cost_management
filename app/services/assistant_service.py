@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -46,11 +47,13 @@ class AssistantService:
         metadata_context = self._metadata_context(clean_message)
         runtime_context = self._runtime_snapshot() if use_runtime_snapshot else {}
         part_context = self._part_context(context_data)
+        explicit_lookup = self._lookup_cost_by_message(clean_message)
 
         context_used = {
             "ui_context": context_data,
             "runtime_snapshot": runtime_context,
             "part_context": part_context,
+            "explicit_part_cost_lookup": explicit_lookup,
             "metadata_tables": metadata_context.get("table_names", []),
         }
 
@@ -339,8 +342,136 @@ class AssistantService:
             ).mappings().first()
             if ci_row:
                 out["selected_cost_item"] = dict(ci_row)
+        elif part_id:
+            latest_for_part = self._latest_cost_item_for_part(int(part_id))
+            if latest_for_part:
+                out["selected_cost_item"] = latest_for_part
 
         return out
+
+    def _latest_cost_item_for_part(self, part_id: int) -> dict[str, Any] | None:
+        ci_row = self.db.execute(
+            text(
+                """
+                SELECT ci.id, ci.calculation_name, ci.material_cost, ci.manufacturing_cost,
+                       ci.overhead_cost, ci.total_cost, c.currency_code, u.unit_code, ci.updated_at
+                FROM cost_item ci
+                LEFT JOIN currency c ON c.id = ci.currency_id
+                LEFT JOIN unit u ON u.id = ci.unit_id
+                WHERE ci.part_id = :part_id
+                ORDER BY ci.updated_at DESC, ci.id DESC
+                LIMIT 1
+                """
+            ),
+            {"part_id": part_id},
+        ).mappings().first()
+        return dict(ci_row) if ci_row else None
+
+    def _lookup_cost_by_message(self, message: str) -> dict[str, Any] | None:
+        msg = (message or "").strip()
+        if not msg:
+            return None
+        if not any(x in msg.lower() for x in ["成本", "占比", "cost", "ratio", "比例"]):
+            return None
+
+        candidates = set(re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]{2,}", msg))
+        candidates = {x for x in candidates if len(x) >= 4}
+
+        # 1) 优先用疑似零件编号匹配
+        for token in candidates:
+            row = self.db.execute(
+                text(
+                    """
+                    SELECT p.id, p.part_number AS part_code, p.part_name
+                    FROM part p
+                    WHERE UPPER(p.part_number) = UPPER(:token)
+                    LIMIT 1
+                    """
+                ),
+                {"token": token},
+            ).mappings().first()
+            if row:
+                result = self._build_cost_ratio_payload(int(row["id"]))
+                if result:
+                    return result
+
+        # 2) 再按“问题文本包含零件编码/名称”匹配
+        row = self.db.execute(
+            text(
+                """
+                SELECT p.id, p.part_number AS part_code, p.part_name
+                FROM part p
+                WHERE LOWER(:msg) LIKE CONCAT('%', LOWER(p.part_number), '%')
+                   OR LOWER(:msg) LIKE CONCAT('%', LOWER(p.part_name), '%')
+                ORDER BY CHAR_LENGTH(p.part_number) DESC, p.id DESC
+                LIMIT 1
+                """
+            ),
+            {"msg": msg.lower()},
+        ).mappings().first()
+        if not row:
+            return None
+        return self._build_cost_ratio_payload(int(row["id"]))
+
+    def _build_cost_ratio_payload(self, part_id: int) -> dict[str, Any] | None:
+        row = self.db.execute(
+            text(
+                """
+                SELECT p.id AS part_id,
+                       p.part_number AS part_code,
+                       p.part_name,
+                       ci.id AS cost_item_id,
+                       ci.calculation_name,
+                       ci.material_cost,
+                       ci.manufacturing_cost,
+                       ci.overhead_cost,
+                       ci.total_cost,
+                       c.currency_code,
+                       u.unit_code
+                FROM part p
+                JOIN cost_item ci ON ci.part_id = p.id
+                LEFT JOIN currency c ON c.id = ci.currency_id
+                LEFT JOIN unit u ON u.id = ci.unit_id
+                WHERE p.id = :part_id
+                ORDER BY ci.updated_at DESC, ci.id DESC
+                LIMIT 1
+                """
+            ),
+            {"part_id": part_id},
+        ).mappings().first()
+        if not row:
+            return None
+
+        material = float(row.get("material_cost") or 0.0)
+        manu = float(row.get("manufacturing_cost") or 0.0)
+        overhead = float(row.get("overhead_cost") or 0.0)
+        total = float(row.get("total_cost") or 0.0)
+        if total <= 0:
+            total = material + manu + overhead
+
+        def pct(v: float) -> float:
+            return round((v / total * 100.0), 2) if total > 0 else 0.0
+
+        return {
+            "part_id": int(row["part_id"]),
+            "part_code": row.get("part_code"),
+            "part_name": row.get("part_name"),
+            "cost_item_id": int(row["cost_item_id"]),
+            "calculation_name": row.get("calculation_name"),
+            "currency_code": row.get("currency_code"),
+            "unit_code": row.get("unit_code"),
+            "amounts": {
+                "material_cost": material,
+                "manufacturing_cost": manu,
+                "overhead_cost": overhead,
+                "total_cost": total,
+            },
+            "ratios_pct": {
+                "material_cost": pct(material),
+                "manufacturing_cost": pct(manu),
+                "overhead_cost": pct(overhead),
+            },
+        }
 
     def _fallback_answer(
         self,
@@ -350,6 +481,29 @@ class AssistantService:
     ) -> dict[str, Any]:
         header = "当前未启用远程大模型，已使用本地应急助手回答。" if no_key else "当前使用本地应急助手回答。"
         runtime = context_used.get("runtime_snapshot", {}).get("table_counts", {})
+        explicit_lookup = context_used.get("explicit_part_cost_lookup")
+        if explicit_lookup:
+            amounts = explicit_lookup.get("amounts", {})
+            ratios = explicit_lookup.get("ratios_pct", {})
+            currency_code = explicit_lookup.get("currency_code") or "-"
+            unit_code = explicit_lookup.get("unit_code") or "-"
+            answer = (
+                f"{header}\n\n"
+                f"已为你定位到零件：{explicit_lookup.get('part_name')} ({explicit_lookup.get('part_code')})\n"
+                f"成本计算：{explicit_lookup.get('calculation_name')} (ID={explicit_lookup.get('cost_item_id')})\n\n"
+                f"总成本：{amounts.get('total_cost', 0):.4f} {currency_code}/{unit_code}\n"
+                f"- 材料成本：{amounts.get('material_cost', 0):.4f}，占比 {ratios.get('material_cost', 0):.2f}%\n"
+                f"- 制造成本：{amounts.get('manufacturing_cost', 0):.4f}，占比 {ratios.get('manufacturing_cost', 0):.2f}%\n"
+                f"- 间接费用：{amounts.get('overhead_cost', 0):.4f}，占比 {ratios.get('overhead_cost', 0):.2f}%\n"
+            )
+            return {
+                "answer": answer,
+                "suggestions": self._suggestions_by_question(clean_message),
+                "model": settings.llm_model,
+                "provider_style": settings.llm_api_style,
+                "context_used": context_used,
+            }
+
         answer = (
             f"{header}\n\n"
             f"你的问题：{clean_message}\n\n"
