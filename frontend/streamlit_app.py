@@ -2715,100 +2715,192 @@ def _render_ai_assistant_widget() -> None:
     cap_ok, cap_data = _request("GET", "/api/v1/assistant/capabilities")
     llm_ready = bool(cap_ok and cap_data.get("llm_configured"))
 
+    st.markdown(
+        """
+        <style>
+        .ai-float-btn button {
+          border-radius: 999px !important;
+          border: 1px solid rgba(56, 189, 248, 0.45) !important;
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 58, 138, 0.90)) !important;
+          color: #e2e8f0 !important;
+          box-shadow: 0 8px 28px rgba(15, 23, 42, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+          font-weight: 700 !important;
+          backdrop-filter: blur(7px);
+        }
+        .ai-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 2px 2px 6px 2px;
+          margin-bottom: 8px;
+          border-bottom: 1px dashed rgba(37, 99, 235, 0.38);
+          cursor: move;
+          user-select: none;
+        }
+        .ai-title {
+          margin: 0;
+          font-size: 1.45rem;
+          font-weight: 780;
+          color: #0f172a;
+        }
+        .ai-sub {
+          font-size: 0.85rem;
+          color: #64748b;
+          font-weight: 600;
+        }
+        .ai-chat-wrap {
+          max-height: 41vh;
+          overflow-y: auto;
+          border-radius: 14px;
+          border: 1px solid rgba(148, 163, 184, 0.34);
+          padding: 10px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.50), rgba(248, 250, 252, 0.38));
+          margin-bottom: 10px;
+        }
+        .ai-msg-row {
+          display: flex;
+          margin: 8px 0;
+        }
+        .ai-msg-row.user {
+          justify-content: flex-end;
+        }
+        .ai-msg-row.assistant {
+          justify-content: flex-start;
+        }
+        .ai-msg {
+          max-width: 82%;
+          border-radius: 14px;
+          padding: 10px 12px;
+          line-height: 1.55;
+          word-break: break-word;
+          white-space: pre-wrap;
+          box-shadow: 0 4px 11px rgba(15, 23, 42, 0.10);
+        }
+        .ai-msg.user {
+          color: #ffffff;
+          background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+          border: 1px solid rgba(30, 64, 175, 0.45);
+        }
+        .ai-msg.assistant {
+          color: #0f172a;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.88));
+          border: 1px solid rgba(148, 163, 184, 0.34);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     bubble = st.container()
     with bubble:
-        if st.button("🤖 AI助手", key="ai_toggle_panel_btn", use_container_width=True):
+        st.markdown("<div class='ai-float-btn'>", unsafe_allow_html=True)
+        if st.button("🤖 AI", key="ai_toggle_panel_btn", use_container_width=True):
             st.session_state.ai_panel_open = not st.session_state.ai_panel_open
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
         if _FLOAT_AVAILABLE:
             float_parent(
                 css=(
                     f"right: {int(st.session_state.ai_bubble_right)}px; "
                     f"bottom: {int(st.session_state.ai_bubble_bottom)}px; "
-                    "z-index: 1301; width: 126px; background: transparent;"
+                    "z-index: 1301; width: 92px; background: transparent;"
                 )
             )
 
-    if not st.session_state.ai_panel_open:
-        return
+    if st.session_state.ai_panel_open:
+        panel = st.container()
+        with panel:
+            st.markdown(
+                """
+                <div id="ai-panel-drag-handle" class="ai-header">
+                  <h3 class="ai-title">AI 助手面板</h3>
+                  <span class="ai-sub">可拖拽 · 右下角可缩放</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-    panel = st.container()
-    with panel:
-        st.markdown("### AI助手面板")
+            if cap_ok:
+                model = cap_data.get("model", "-")
+                mode = cap_data.get("provider_style", "-")
+                conf_text = "系统已配置" if llm_ready else "未配置"
+                st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf_text}")
+            else:
+                st.caption("助手能力检测失败，将尝试按默认方式请求。")
 
-        if cap_ok:
-            model = cap_data.get("model", "-")
-            mode = cap_data.get("provider_style", "-")
-            conf_text = "系统已配置" if llm_ready else "未配置"
-            st.caption(f"模型: `{model}` | 接口: `{mode}` | 密钥: {conf_text}")
-        else:
-            st.caption("助手能力检测失败，将尝试按默认方式请求。")
+            q1, q2 = st.columns([1, 1])
+            if q1.button("操作指南", key="ai_quick_guide", use_container_width=True):
+                _append_qa("请给我当前系统的完整操作指南，按模块分步骤说明。")
+                st.rerun()
+            if q2.button("成本解读", key="ai_quick_cost", use_container_width=True):
+                _append_qa("请结合当前上下文，解释成本构成并给出3条优化建议。")
+                st.rerun()
 
-        q1, q2 = st.columns([1, 1])
-        if q1.button("操作指南", key="ai_quick_guide", use_container_width=True):
-            _append_qa("请给我当前系统的完整操作指南，按模块分步骤说明。")
-            st.rerun()
-        if q2.button("成本解读", key="ai_quick_cost", use_container_width=True):
-            _append_qa("请结合当前上下文，解释成本构成并给出3条优化建议。")
-            st.rerun()
+            rows: list[str] = ["<div class='ai-chat-wrap'>"]
+            for msg in st.session_state.ai_chat_history[-24:]:
+                role = "user" if msg.get("role") == "user" else "assistant"
+                content = escape(str(msg.get("content", ""))).replace("\n", "<br>")
+                rows.append(f"<div class='ai-msg-row {role}'><div class='ai-msg {role}'>{content}</div></div>")
+            rows.append("</div>")
+            st.markdown("".join(rows), unsafe_allow_html=True)
 
-        for msg in st.session_state.ai_chat_history[-18:]:
-            role = "user" if msg.get("role") == "user" else "assistant"
-            with st.chat_message(role):
-                st.markdown(str(msg.get("content", "")))
+            st.session_state.ai_draft = st.text_area(
+                "向 AI 提问",
+                value=st.session_state.ai_draft,
+                key="ai_draft_textarea",
+                height=130,
+                placeholder="例如：查询 DEMO-PART-ASM-300 的成本占比，并比较优化优先级。",
+            )
 
-        st.session_state.ai_draft = st.text_area(
-            "向 AI 提问",
-            value=st.session_state.ai_draft,
-            key="ai_draft_textarea",
-            height=130,
-            placeholder="例如：查询 DEMO-PART-ASM-300 的成本占比，并比较优化优先级。",
-        )
-
-        b1, b2, b3 = st.columns(3)
-        if b1.button("发送", key="ai_send_btn", type="primary", use_container_width=True):
-            text_to_send = (st.session_state.ai_draft or "").strip()
-            if text_to_send:
-                _append_qa(text_to_send)
+            b1, b2, b3 = st.columns(3)
+            if b1.button("发送", key="ai_send_btn", type="primary", use_container_width=True):
+                text_to_send = (st.session_state.ai_draft or "").strip()
+                if text_to_send:
+                    _append_qa(text_to_send)
+                    st.session_state.ai_draft = ""
+                    st.rerun()
+                st.warning("请输入问题后再发送。")
+            if b2.button("清空会话", key="ai_clear_btn", use_container_width=True):
+                st.session_state.ai_chat_history = [
+                    {
+                        "role": "assistant",
+                        "content": "会话已清空。你可以继续提问：操作指南、数据地图、零件成本占比分析。",
+                    }
+                ]
                 st.session_state.ai_draft = ""
                 st.rerun()
-            st.warning("请输入问题后再发送。")
-        if b2.button("清空会话", key="ai_clear_btn", use_container_width=True):
-            st.session_state.ai_chat_history = [
-                {
-                    "role": "assistant",
-                    "content": "会话已清空。你可以继续提问：操作指南、数据地图、零件成本占比分析。",
-                }
-            ]
-            st.session_state.ai_draft = ""
-            st.rerun()
-        if b3.button("收起", key="ai_close_btn", use_container_width=True):
-            st.session_state.ai_panel_open = False
-            st.rerun()
+            if b3.button("收起", key="ai_close_btn", use_container_width=True):
+                st.session_state.ai_panel_open = False
+                st.rerun()
 
-        if _FLOAT_AVAILABLE:
-            float_parent(
-                css=(
-                    f"right: {int(st.session_state.ai_panel_right)}px; "
-                    f"bottom: {int(st.session_state.ai_panel_bottom)}px; "
-                    f"width: min(94vw, {int(st.session_state.ai_panel_width)}px); "
-                    f"height: min(90vh, {int(st.session_state.ai_panel_height)}px); "
-                    "z-index: 1300; overflow: auto; background: #ffffff; "
-                    "border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px;"
+            if _FLOAT_AVAILABLE:
+                float_parent(
+                    css=(
+                        f"right: {int(st.session_state.ai_panel_right)}px; "
+                        f"bottom: {int(st.session_state.ai_panel_bottom)}px; "
+                        f"width: min(94vw, {int(st.session_state.ai_panel_width)}px); "
+                        f"height: min(88vh, {int(st.session_state.ai_panel_height)}px); "
+                        "z-index: 1300; overflow: auto; resize: both; "
+                        "background: linear-gradient(165deg, rgba(255,255,255,0.84), rgba(241,245,249,0.74)); "
+                        "backdrop-filter: blur(14px) saturate(1.08); "
+                        "border: 1px solid rgba(148,163,184,0.45); border-radius: 16px; "
+                        "box-shadow: 0 20px 52px rgba(15,23,42,0.26); padding: 12px 14px;"
+                    )
                 )
-            )
+
     st.components.v1.html(
         """
         <script>
         (function() {
           const doc = window.parent.document;
-          const K_BUBBLE = "idme_ai_bubble_pos";
-          const K_PANEL = "idme_ai_panel_pos";
-          const K_PANEL_SIZE = "idme_ai_panel_size";
+          const K_BUBBLE = "idme_ai_bubble_pos_v3";
+          const K_PANEL = "idme_ai_panel_pos_v3";
+          const K_PANEL_SIZE = "idme_ai_panel_size_v3";
+          const TH = 4;
 
           function findFixedAncestor(el) {
             let p = el;
-            for (let i = 0; i < 8 && p; i++) {
+            for (let i = 0; i < 12 && p; i++) {
               const s = window.parent.getComputedStyle(p);
               if (s.position === "fixed") return p;
               p = p.parentElement;
@@ -2830,7 +2922,7 @@ def _render_ai_assistant_widget() -> None:
             } catch (e) {}
           }
 
-          function restorePanelSize(node) {
+          function restoreSize(node) {
             const raw = window.parent.localStorage.getItem(K_PANEL_SIZE);
             if (!raw) return;
             try {
@@ -2840,7 +2932,9 @@ def _render_ai_assistant_widget() -> None:
             } catch (e) {}
           }
 
-          function persistPanelSize(node) {
+          function observeSize(node) {
+            if (node.dataset.idmeResizeBound === "1") return;
+            node.dataset.idmeResizeBound = "1";
             const ro = new window.parent.ResizeObserver(() => {
               const rect = node.getBoundingClientRect();
               window.parent.localStorage.setItem(K_PANEL_SIZE, JSON.stringify({
@@ -2851,77 +2945,83 @@ def _render_ai_assistant_widget() -> None:
             ro.observe(node);
           }
 
-          function bindDrag(handle, key) {
+          function bindDrag(handle, key, panelMode) {
+            if (!handle || handle.dataset.idmeDragBound === "1") return;
             const target = findFixedAncestor(handle);
             if (!target) return;
-            handle.style.cursor = "move";
+            handle.dataset.idmeDragBound = "1";
+            handle.style.cursor = "grab";
             handle.style.userSelect = "none";
             restorePosition(target, key);
-            if (key === K_PANEL) {
-              restorePanelSize(target);
-              persistPanelSize(target);
+            if (panelMode) {
+              restoreSize(target);
+              observeSize(target);
             }
-            handle.onmousedown = function(e) {
-              handle.__idmeMoved = false;
+
+            let down = false, dragging = false;
+            let sx = 0, sy = 0, baseL = 0, baseT = 0;
+            let suppressClickUntil = 0;
+
+            handle.addEventListener("pointerdown", function(e) {
+              if (e.button !== 0) return;
               const r = target.getBoundingClientRect();
-              window.parent.__idmeDragState = {
-                target: target,
-                key: key,
-                ox: e.clientX - r.left,
-                oy: e.clientY - r.top,
-                handle: handle,
-              };
+              sx = e.clientX; sy = e.clientY;
+              baseL = r.left; baseT = r.top;
+              down = true; dragging = false;
+              handle.style.cursor = "grabbing";
+              if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
+            });
+
+            handle.addEventListener("pointermove", function(e) {
+              if (!down) return;
+              const dx = e.clientX - sx;
+              const dy = e.clientY - sy;
+              if (!dragging && Math.hypot(dx, dy) < TH) return;
+              dragging = true;
+              const left = baseL + dx;
+              const top = baseT + dy;
+              target.style.left = left + "px";
+              target.style.top = top + "px";
+              target.style.right = "auto";
+              target.style.bottom = "auto";
+              window.parent.localStorage.setItem(key, JSON.stringify({ left, top }));
               e.preventDefault();
-            };
-            if (!handle.__idmeClickBound) {
-              handle.__idmeClickBound = true;
-              handle.addEventListener("click", function(e) {
-                if (handle.__idmeSuppressClick) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handle.__idmeSuppressClick = false;
-                }
-              }, true);
+            });
+
+            function endDrag(e) {
+              if (!down) return;
+              if (dragging) suppressClickUntil = Date.now() + 280;
+              down = false;
+              dragging = false;
+              handle.style.cursor = "grab";
+              if (handle.releasePointerCapture && e && e.pointerId !== undefined) {
+                try { handle.releasePointerCapture(e.pointerId); } catch (_e) {}
+              }
             }
-          }
-          if (!window.parent.__idmeDragGlobalBound) {
-            window.parent.__idmeDragGlobalBound = true;
-            doc.addEventListener("mousemove", function(e) {
-              const st = window.parent.__idmeDragState;
-              if (!st || !st.target) return;
-              const left = e.clientX - st.ox;
-              const top = e.clientY - st.oy;
-              if (Math.abs(e.movementX) + Math.abs(e.movementY) > 0) {
-                st.handle.__idmeMoved = true;
+            handle.addEventListener("pointerup", endDrag);
+            handle.addEventListener("pointercancel", endDrag);
+
+            handle.addEventListener("click", function(e) {
+              if (Date.now() < suppressClickUntil) {
+                e.preventDefault();
+                e.stopPropagation();
               }
-              st.target.style.left = left + "px";
-              st.target.style.top = top + "px";
-              st.target.style.right = "auto";
-              st.target.style.bottom = "auto";
-              window.parent.localStorage.setItem(st.key, JSON.stringify({left, top}));
-            });
-            doc.addEventListener("mouseup", function() {
-              const st = window.parent.__idmeDragState;
-              if (st && st.handle && st.handle.__idmeMoved) {
-                st.handle.__idmeSuppressClick = true;
-              }
-              window.parent.__idmeDragState = null;
-            });
+            }, true);
           }
 
           function bindAll() {
             const bubbleBtn = Array.from(doc.querySelectorAll("button")).find(
-              b => (b.innerText || "").includes("AI助手")
+              b => (b.innerText || "").trim() === "🤖 AI"
             );
-            if (bubbleBtn) bindDrag(bubbleBtn, K_BUBBLE);
+            if (bubbleBtn) bindDrag(bubbleBtn, K_BUBBLE, false);
 
-            const panelTitle = Array.from(doc.querySelectorAll("h1,h2,h3,h4,div")).find(
-              d => (d.innerText || "").includes("AI助手面板")
-            );
-            if (panelTitle) bindDrag(panelTitle, K_PANEL);
+            const panelHandle = doc.getElementById("ai-panel-drag-handle");
+            if (panelHandle) bindDrag(panelHandle, K_PANEL, true);
           }
-          setTimeout(bindAll, 240);
-          setInterval(bindAll, 1000);
+
+          setTimeout(bindAll, 120);
+          setTimeout(bindAll, 600);
+          setInterval(bindAll, 1200);
         })();
         </script>
         """,
