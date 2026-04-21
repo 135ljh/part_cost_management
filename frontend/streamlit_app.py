@@ -17,6 +17,8 @@ try:
 except Exception:
     _FLOAT_AVAILABLE = False
 
+_HTTP = requests.Session()
+
 
 # ---------------------------------------------------------------------
 # Streamlit compatibility helpers
@@ -575,7 +577,7 @@ def _base_url() -> str:
 
 def _backend_ok(base: str) -> bool:
     try:
-        resp = requests.get(f"{base.rstrip('/')}/health", timeout=1.5)
+        resp = _HTTP.get(f"{base.rstrip('/')}/health", timeout=1.5)
         return resp.status_code < 500
     except requests.RequestException:
         return False
@@ -604,7 +606,7 @@ def _log(module: str, action: str, ok: bool, message: str, row_id: Any | None = 
 @st.cache_data(show_spinner=False, ttl=20)
 def _cached_get(base: str, path: str, token: int) -> tuple[bool, Any]:
     try:
-        resp = requests.get(f"{base}{path}", timeout=15)
+        resp = _HTTP.get(f"{base}{path}", timeout=15)
         if resp.status_code >= 400:
             try:
                 return False, f"{resp.status_code}: {resp.json()}"
@@ -616,7 +618,7 @@ def _cached_get(base: str, path: str, token: int) -> tuple[bool, Any]:
 
 def _request(method: str, path: str, payload: dict[str, Any] | None = None) -> tuple[bool, Any]:
     try:
-        resp = requests.request(method, f"{_base_url()}{path}", json=payload, timeout=20)
+        resp = _HTTP.request(method, f"{_base_url()}{path}", json=payload, timeout=20)
         if resp.status_code >= 400:
             try:
                 return False, f"{resp.status_code}: {resp.json()}"
@@ -667,6 +669,29 @@ def _clear_cache() -> None:
 
 def _load_rows(path: str) -> tuple[bool, Any]:
     return _cached_get(_base_url(), path, st.session_state.reload_token)
+
+
+@st.cache_data(show_spinner=False, ttl=20)
+def _module_counts_cached(base_url: str, reload_token: int) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for mk, cfg in MODULES.items():
+        ok, rows = _cached_get(base_url, cfg["endpoint"], reload_token)
+        counts[mk] = len(rows or []) if ok else 0
+    return counts
+
+
+@st.cache_data(show_spinner=False, ttl=30)
+def _assistant_capabilities_cached(base_url: str, reload_token: int) -> tuple[bool, Any]:
+    try:
+        resp = _HTTP.get(f"{base_url}/api/v1/assistant/capabilities", timeout=8)
+        if resp.status_code >= 400:
+            try:
+                return False, f"{resp.status_code}: {resp.json()}"
+            except Exception:
+                return False, f"{resp.status_code}: {resp.text}"
+        return True, resp.json()
+    except requests.RequestException as exc:
+        return False, str(exc)
 
 def _label_for_row(module_key: str, row: dict[str, Any]) -> str:
     keys = MODULES[module_key]["summary_fields"]
@@ -781,16 +806,24 @@ def _build_col_maps(module_key: str, columns: list[str]) -> tuple[dict[str, str]
     return c2l, l2c
 
 def _fk_options(module_key: str) -> list[tuple[int | None, str]]:
+    cache_key = f"_fk_opt_cache_{module_key}_{st.session_state.reload_token}_{_base_url()}"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
     ok, data = _load_rows(MODULES[module_key]["endpoint"])
     if not ok:
-        return [(None, f"加载失败: {data}")]
+        st.session_state[cache_key] = [(None, f"加载失败: {data}")]
+        return st.session_state[cache_key]
     rows = data or []
     opts = [(None, "-- 请选择 --")]
     for row in rows:
         opts.append((row.get("id"), _label_for_row(module_key, row)))
+    st.session_state[cache_key] = opts
     return opts
 
 def _fk_display_maps(module_key: str) -> dict[str, dict[Any, str]]:
+    cache_key = f"_fk_map_cache_{module_key}_{st.session_state.reload_token}_{_base_url()}"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
     maps: dict[str, dict[Any, str]] = {}
     for field in MODULES[module_key]["fields"]:
         if field.get("type") != "fk":
@@ -810,6 +843,7 @@ def _fk_display_maps(module_key: str) -> dict[str, dict[Any, str]]:
             id_map[rid] = label
             id_map[str(rid)] = label
         maps[field["name"]] = id_map
+    st.session_state[cache_key] = maps
     return maps
 
 def _apply_fk_display(module_key: str, item: dict[str, Any], fk_maps: dict[str, dict[Any, str]]) -> dict[str, Any]:
@@ -1059,7 +1093,7 @@ def _render_tree(module_key: str) -> None:
     for root in data:
         walk(root)
 
-@st.fragment(run_every="1s")
+@st.fragment(run_every="5s")
 def _live_time_stat() -> None:
     st.markdown(
         f"<div class='stat-box'><div class='stat-k'>本地系统时钟</div><div class='stat-v'>{datetime.now().strftime('%H:%M:%S')}</div></div>",
@@ -2422,26 +2456,19 @@ def _render_home_dashboard() -> None:
     data_module_keys = [k for k, v in MODULES.items() if v["group"] != "零件管理"]
     part_module_keys = [k for k, v in MODULES.items() if v["group"] == "零件管理"]
 
-    def _count_rows(module_key: str) -> int:
-        ok, rows = _load_rows(MODULES[module_key]["endpoint"])
-        if not ok or rows is None:
-            return 0
-        return len(rows)
+    base = _base_url()
+    token = st.session_state.reload_token
+    count_map = _module_counts_cached(base, token)
 
     key_modules = ["parts", "boms", "bom_items", "cost_items", "material_types", "materials", "equipment", "currencies"]
-    counts: dict[str, int] = {}
-    for mk in key_modules:
-        if mk in MODULES:
-            counts[mk] = _count_rows(mk)
+    counts = {mk: count_map.get(mk, 0) for mk in key_modules if mk in MODULES}
 
-    total_records = 0
-    for mk in MODULES.keys():
-        total_records += _count_rows(mk)
+    total_records = sum(count_map.values())
 
     part_count = counts.get("parts", 0)
     bom_count = counts.get("boms", 0)
     cost_count = counts.get("cost_items", 0)
-    attach_count = _count_rows("part_attachments") if "part_attachments" in MODULES else 0
+    attach_count = count_map.get("part_attachments", 0) if "part_attachments" in MODULES else 0
     health_ok = _backend_ok(_base_url())
 
     k1, k2, k3, k4 = st.columns(4)
@@ -2474,7 +2501,7 @@ def _render_home_dashboard() -> None:
         st.markdown("<div class='home-panel'><h4>📊 业务模块数据规模概览</h4></div>", unsafe_allow_html=True)
         size_rows = []
         for mk in MODULES.keys():
-            size_rows.append({"模块": MODULES[mk]["name"], "分组": MODULES[mk]["group"], "记录数": _count_rows(mk)})
+            size_rows.append({"模块": MODULES[mk]["name"], "分组": MODULES[mk]["group"], "记录数": count_map.get(mk, 0)})
         df_size = pd.DataFrame(size_rows).sort_values(by="记录数", ascending=False).head(12)
         st.bar_chart(df_size.set_index("模块")["记录数"], use_container_width=True)
         st.dataframe(df_size.head(8), use_container_width=True, hide_index=True, height=300)
@@ -2712,7 +2739,7 @@ def _render_ai_assistant_widget() -> None:
         ok, answer = _assistant_send_message(question)
         st.session_state.ai_chat_history.append({"role": "assistant", "content": answer if ok else f"请求失败: {answer}"})
 
-    cap_ok, cap_data = _request("GET", "/api/v1/assistant/capabilities")
+    cap_ok, cap_data = _assistant_capabilities_cached(_base_url(), st.session_state.reload_token)
     llm_ready = bool(cap_ok and cap_data.get("llm_configured"))
 
     st.markdown(
