@@ -575,15 +575,22 @@ def _init_state() -> None:
 def _base_url() -> str:
     return st.session_state.api_base_url.rstrip("/")
 
-def _backend_ok(base: str) -> bool:
+@st.cache_data(show_spinner=False, ttl=10)
+def _backend_ok_cached(base: str) -> bool:
     try:
         resp = _HTTP.get(f"{base.rstrip('/')}/health", timeout=1.5)
         return resp.status_code < 500
     except requests.RequestException:
         return False
 
+
+def _backend_ok(base: str) -> bool:
+    return _backend_ok_cached(base)
+
 def _autofix_api_base_url() -> None:
     current = _base_url()
+    if _backend_ok(current):
+        return
     for base in ("http://127.0.0.1:8000", "http://127.0.0.1:8001"):
         if _backend_ok(base):
             st.session_state.api_base_url = base
@@ -1093,7 +1100,7 @@ def _render_tree(module_key: str) -> None:
     for root in data:
         walk(root)
 
-@st.fragment(run_every="5s")
+@st.fragment(run_every="1s")
 def _live_time_stat() -> None:
     st.markdown(
         f"<div class='stat-box'><div class='stat-k'>本地系统时钟</div><div class='stat-v'>{datetime.now().strftime('%H:%M:%S')}</div></div>",
