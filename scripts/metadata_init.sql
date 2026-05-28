@@ -499,3 +499,28 @@ INSERT INTO `meta_column_definition` (`table_def_id`, `column_name`, `display_na
 INSERT INTO `meta_column_definition` (`table_def_id`, `column_name`, `display_name`, `description`, `data_type`, `is_primary_key`, `is_foreign_key`, `ref_table_name`, `ref_column_name`, `is_nullable`, `sort_no`) SELECT `id`, 'sort_no', 'sort_no', '排序号', 'INT', 0, 0, '', '', 0, 12 FROM `meta_table_definition` WHERE `table_name` = 'meta_column_definition';
 INSERT INTO `meta_column_definition` (`table_def_id`, `column_name`, `display_name`, `description`, `data_type`, `is_primary_key`, `is_foreign_key`, `ref_table_name`, `ref_column_name`, `is_nullable`, `sort_no`) SELECT `id`, 'created_at', 'created_at', '创建时间', 'DATETIME', 0, 0, '', '', 0, 13 FROM `meta_table_definition` WHERE `table_name` = 'meta_column_definition';
 INSERT INTO `meta_column_definition` (`table_def_id`, `column_name`, `display_name`, `description`, `data_type`, `is_primary_key`, `is_foreign_key`, `ref_table_name`, `ref_column_name`, `is_nullable`, `sort_no`) SELECT `id`, 'updated_at', 'updated_at', '更新时间', 'DATETIME', 0, 0, '', '', 0, 14 FROM `meta_table_definition` WHERE `table_name` = 'meta_column_definition';
+
+-- 所属模块补充：用于核心数据表与字段字典按业务模块检索、展示。
+UPDATE `meta_table_definition` SET `module_name` = CASE
+  WHEN `table_name` IN ('currency', 'currency_exchange_rate', 'unit', 'region') THEN '基础主数据'
+  WHEN `table_name` IN ('region_cost_profile') THEN '成本基础'
+  WHEN `table_name` IN ('material_category', 'material', 'material_price') THEN '物质基础'
+  WHEN `table_name` IN ('equipment_category', 'equipment', 'equipment_specification') THEN '设备基础'
+  WHEN `table_name` IN ('equipment_rate', 'equipment_cost_profile') THEN '设备成本'
+  WHEN `table_name` IN ('material_type', 'part', 'part_attachment', 'bom', 'bom_item') THEN '零件管理'
+  WHEN `table_name` IN ('formula_definition', 'cost_calculation', 'cost_material_item', 'process_operation', 'process_equipment_usage', 'cost_component', 'cost_summary', 'cost_trace', 'cost_item') THEN '成本计算'
+  WHEN `table_name` IN ('meta_table_definition', 'meta_column_definition') THEN '元数据'
+  ELSE `domain_name`
+END;
+
+UPDATE `meta_column_definition` c
+JOIN `meta_table_definition` t ON t.`id` = c.`table_def_id`
+SET c.`module_name` = t.`module_name`;
+
+INSERT INTO `meta_column_definition` (`table_def_id`, `column_name`, `display_name`, `module_name`, `description`, `data_type`, `is_primary_key`, `is_foreign_key`, `ref_table_name`, `ref_column_name`, `is_nullable`, `sort_no`)
+SELECT `id`, 'module_name', 'module_name', '元数据', '所属模块', 'VARCHAR(64)', 0, 0, '', '', 0, 5
+FROM `meta_table_definition` WHERE `table_name` = 'meta_table_definition';
+
+INSERT INTO `meta_column_definition` (`table_def_id`, `column_name`, `display_name`, `module_name`, `description`, `data_type`, `is_primary_key`, `is_foreign_key`, `ref_table_name`, `ref_column_name`, `is_nullable`, `sort_no`)
+SELECT `id`, 'module_name', 'module_name', '元数据', '所属模块', 'VARCHAR(64)', 0, 0, '', '', 0, 5
+FROM `meta_table_definition` WHERE `table_name` = 'meta_column_definition';

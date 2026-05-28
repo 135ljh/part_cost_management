@@ -2517,6 +2517,11 @@ def _render_home_dashboard() -> None:
         .home-kpi-s { margin-top:6px; color:#4b5563; font-size:.84rem; }
         .home-panel { background:#fff; border:1px solid #d1d5db; border-radius:6px; padding:12px 12px 10px 12px; min-height:0; }
         .home-panel h4 { margin:0 0 10px 0; color:#0f172a; font-size:1rem; font-weight:700; }
+        .workflow-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:12px 0 4px 0; }
+        .workflow-step { background:#fff; border:1px solid #d1d5db; border-left:3px solid #0284c7; border-radius:4px; padding:10px 12px; min-height:70px; }
+        .workflow-step b { display:block; color:#0f172a; font-size:.9rem; margin-bottom:4px; }
+        .workflow-step span { color:#4b5563; font-size:.8rem; line-height:1.35; }
+        @media (max-width: 900px) { .workflow-strip { grid-template-columns:repeat(2,minmax(0,1fr)); } }
         </style>
         """,
         unsafe_allow_html=True,
@@ -2571,6 +2576,18 @@ def _render_home_dashboard() -> None:
             unsafe_allow_html=True,
         )
 
+    st.markdown(
+        """
+        <div class="workflow-strip">
+          <div class="workflow-step"><b>1 数据配置</b><span>单位、币种、物质、设备和成本参数统一维护。</span></div>
+          <div class="workflow-step"><b>2 零件建模</b><span>建立 Part 主数据，绑定物料分类、生命周期和版本。</span></div>
+          <div class="workflow-step"><b>3 BOM 结构</b><span>维护父子件层级、用量、单位和外协属性。</span></div>
+          <div class="workflow-step"><b>4 成本分析</b><span>沉淀材料、制造、间接费用和结果追溯。</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.write("")
     p1, p2 = st.columns([0.66, 0.34], gap="medium")
     with p1:
@@ -2602,6 +2619,10 @@ def _render_home_dashboard() -> None:
             st.rerun()
         if qd.button("审计日志", use_container_width=True):
             st.session_state.page_key = "logs"
+            st.rerun()
+        if st.button("打开 AI 数据录入助手", type="primary", use_container_width=True):
+            st.session_state.ai_panel_open = True
+            st.session_state.ai_draft = "请导入以下工作流数据：\n"
             st.rerun()
 
         st.caption("系统简介")
@@ -2713,6 +2734,31 @@ def _load_metadata_dictionary() -> dict[str, Any]:
         return {"tables": []}
 
 
+def _metadata_module_for_table(table_name: str | None) -> str:
+    table_to_module = {
+        "unit": "基础主数据",
+        "currency": "基础主数据",
+        "currency_exchange_rate": "基础主数据",
+        "region": "基础主数据",
+        "region_cost_profile": "成本基础",
+        "equipment_category": "设备基础",
+        "equipment": "设备基础",
+        "equipment_specification": "设备基础",
+        "equipment_rate": "设备成本",
+        "equipment_cost_profile": "设备成本",
+        "material_category": "物质基础",
+        "material": "物质基础",
+        "material_price": "物质基础",
+        "material_type": "零件管理",
+        "part": "零件管理",
+        "part_attachment": "零件管理",
+        "bom": "零件管理",
+        "bom_item": "零件管理",
+        "cost_item": "零件管理",
+    }
+    return table_to_module.get(str(table_name or ""), "未分组")
+
+
 def _render_metadata_map() -> None:
     md = _load_metadata_dictionary()
     tables = md.get("tables", []) if isinstance(md, dict) else []
@@ -2737,6 +2783,7 @@ def _render_metadata_map() -> None:
     for t in tables:
         table_rows.append(
             {
+                "所属模块": t.get("module") or _metadata_module_for_table(t.get("table_name")),
                 "表名": t.get("table_name"),
                 "显示名称": t.get("table_display_name"),
                 "说明": t.get("table_description"),
@@ -2751,11 +2798,12 @@ def _render_metadata_map() -> None:
             blob = " ".join(
                 [
                     str(t.get("table_name", "")),
+                    str(t.get("module", "")),
                     str(t.get("table_display_name", "")),
                     str(t.get("table_description", "")),
                     " ".join(
                         [
-                            f"{f.get('name','')} {f.get('description','')} {f.get('data_type','')} {f.get('references','') or ''}"
+                            f"{f.get('name','')} {f.get('module','')} {f.get('description','')} {f.get('data_type','')} {f.get('references','') or ''}"
                             for f in (t.get("fields", []) or [])
                         ]
                     ),
@@ -2766,6 +2814,7 @@ def _render_metadata_map() -> None:
         tables = filtered
         table_rows = [
             {
+                "所属模块": t.get("module") or _metadata_module_for_table(t.get("table_name")),
                 "表名": t.get("table_name"),
                 "显示名称": t.get("table_display_name"),
                 "说明": t.get("table_description"),
@@ -2787,9 +2836,11 @@ def _render_metadata_map() -> None:
     t = tables[options.index(selected)]
 
     rows = []
+    table_module = t.get("module") or _metadata_module_for_table(t.get("table_name"))
     for f in (t.get("fields", []) or []):
         rows.append(
             {
+                "所属模块": f.get("module") or table_module,
                 "字段名": f.get("name"),
                 "字段描述": f.get("description"),
                 "数据类型": f.get("data_type"),
@@ -3006,12 +3057,34 @@ def _render_ai_assistant_widget() -> None:
             else:
                 st.caption("助手能力检测失败，将尝试按默认方式请求。")
 
-            q1, q2 = st.columns([1, 1])
+            q1, q2, q3 = st.columns([1, 1, 1])
             if q1.button("操作指南", key="ai_quick_guide", use_container_width=True):
                 _append_qa("请给我当前系统的完整操作指南，按模块分步骤说明。")
                 st.rerun()
             if q2.button("成本解读", key="ai_quick_cost", use_container_width=True):
                 _append_qa("请结合当前上下文，解释成本构成并给出3条优化建议。")
+                st.rerun()
+            if q3.button("录入模板", key="ai_quick_import_template", use_container_width=True):
+                st.session_state.ai_draft = """请导入以下工作流数据：
+```json
+{
+  "workflow_data": {
+    "units": [{"unit_code": "PCS", "unit_name": "件", "unit_category": "数量"}],
+    "currencies": [{"currency_code": "CNY", "currency_name": "人民币", "currency_symbol": "¥"}],
+    "material_types": [{"material_type_code": "ASM", "material_type_name": "总成"}],
+    "material_categories": [{"category_code": "ELEC", "category_name": "电子件"}],
+    "materials": [{"material_code": "MAT-CU", "material_name": "铜材", "category_code": "ELEC"}],
+    "parts": [
+      {"part_code": "PART-ASM-001", "part_name": "控制模块", "part_type": "ASSEMBLY", "material_type_code": "ASM", "material_category_code": "ELEC", "quantity_unit_code": "PCS"},
+      {"part_code": "PART-PCB-001", "part_name": "控制板", "part_type": "COMPONENT", "preferred_material_code": "MAT-CU", "quantity_unit_code": "PCS"}
+    ],
+    "boms": [{"bom_code": "BOM-PART-ASM-001", "bom_name": "控制模块BOM", "part_code": "PART-ASM-001", "status": "RELEASED"}],
+    "bom_items": [{"bom_code": "BOM-PART-ASM-001", "child_part_code": "PART-PCB-001", "quantity": 1, "quantity_unit_code": "PCS"}],
+    "cost_items": [{"calculation_name": "控制模块成本", "part_code": "PART-ASM-001", "currency_code": "CNY", "unit_code": "PCS", "material_cost": 18.5, "manufacturing_cost": 6.2, "overhead_cost": 2.1}]
+  }
+}
+```
+"""
                 st.rerun()
 
             rows: list[str] = ["<div class='ai-chat-wrap'>"]
@@ -3030,7 +3103,7 @@ def _render_ai_assistant_widget() -> None:
                 value=st.session_state.ai_draft,
                 key="ai_draft_textarea",
                 height=130,
-                placeholder="例如：查询 DEMO-PART-ASM-300 的成本占比，并比较优化优先级。",
+                placeholder="例如：查询 DEMO-PART-ASM-300 的成本占比；或粘贴 JSON 工作流数据，让 AI 自动录入单位、币种、零件、BOM 和成本记录。",
             )
 
             b1, b2, b3 = st.columns(3)

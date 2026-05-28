@@ -11,7 +11,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_id",
@@ -19,7 +20,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "part.id"
+          "references": "part.id",
+          "module": "????"
         },
         {
           "name": "bom_code",
@@ -27,7 +29,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "bom_name",
@@ -35,7 +38,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "version_no",
@@ -43,7 +47,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "status",
@@ -51,7 +56,8 @@
           "data_type": "VARCHAR(32)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_from",
@@ -59,7 +65,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_to",
@@ -67,7 +74,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -75,7 +83,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -83,7 +92,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -91,9 +101,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "bom_item",
@@ -106,7 +118,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "bom_id",
@@ -114,7 +127,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "bom.id"
+          "references": "bom.id",
+          "module": "????"
         },
         {
           "name": "parent_item_id",
@@ -122,7 +136,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "bom_item.id"
+          "references": "bom_item.id",
+          "module": "????"
         },
         {
           "name": "child_part_id",
@@ -130,7 +145,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "part.id"
+          "references": "part.id",
+          "module": "????"
         },
         {
           "name": "item_name_snapshot",
@@ -138,7 +154,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "item_number_snapshot",
@@ -146,7 +163,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "item_version_snapshot",
@@ -154,7 +172,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "quantity",
@@ -162,7 +181,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "quantity_unit_id",
@@ -170,7 +190,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "????"
         },
         {
           "name": "is_outsourced",
@@ -178,7 +199,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "sort_no",
@@ -186,7 +208,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -194,7 +217,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -202,7 +226,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -210,9 +235,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "cost_item",
@@ -225,7 +252,8 @@
           "data_type": "BIGINT",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "calculation_name",
@@ -233,7 +261,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_id",
@@ -241,7 +270,8 @@
           "data_type": "BIGINT",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "part.id"
+          "references": "part.id",
+          "module": "????"
         },
         {
           "name": "currency_id",
@@ -249,7 +279,8 @@
           "data_type": "BIGINT",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "currency.id"
+          "references": "currency.id",
+          "module": "????"
         },
         {
           "name": "unit_id",
@@ -257,7 +288,8 @@
           "data_type": "BIGINT",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "????"
         },
         {
           "name": "material_cost",
@@ -265,7 +297,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "manufacturing_cost",
@@ -273,7 +306,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "overhead_cost",
@@ -281,7 +315,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "total_cost",
@@ -289,7 +324,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "rule_version",
@@ -297,7 +333,8 @@
           "data_type": "VARCHAR(32)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "trace_detail",
@@ -305,7 +342,8 @@
           "data_type": "TEXT",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -313,7 +351,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -321,7 +360,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -329,9 +369,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "currency",
@@ -344,7 +386,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "currency_code",
@@ -352,7 +395,8 @@
           "data_type": "VARCHAR(16)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "currency_name",
@@ -360,7 +404,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "currency_symbol",
@@ -368,7 +413,8 @@
           "data_type": "VARCHAR(16)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "precision_scale",
@@ -376,7 +422,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "is_base_currency",
@@ -384,7 +431,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "is_active",
@@ -392,7 +440,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "remark",
@@ -400,7 +449,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "created_at",
@@ -408,7 +458,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "updated_at",
@@ -416,9 +467,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         }
-      ]
+      ],
+      "module": "?????"
     },
     {
       "table_name": "currency_exchange_rate",
@@ -431,7 +484,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "from_currency_id",
@@ -439,7 +493,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "currency.id"
+          "references": "currency.id",
+          "module": "?????"
         },
         {
           "name": "to_currency_id",
@@ -447,7 +502,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "currency.id"
+          "references": "currency.id",
+          "module": "?????"
         },
         {
           "name": "rate_type",
@@ -455,7 +511,8 @@
           "data_type": "VARCHAR(32)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "exchange_rate",
@@ -463,7 +520,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "effective_date",
@@ -471,7 +529,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "source_name",
@@ -479,7 +538,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "is_active",
@@ -487,7 +547,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "remark",
@@ -495,7 +556,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "created_at",
@@ -503,7 +565,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "updated_at",
@@ -511,9 +574,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         }
-      ]
+      ],
+      "module": "?????"
     },
     {
       "table_name": "equipment",
@@ -526,7 +591,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_code",
@@ -534,7 +600,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_name",
@@ -542,7 +609,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "category_id",
@@ -550,7 +618,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "equipment_category.id"
+          "references": "equipment_category.id",
+          "module": "????"
         },
         {
           "name": "equipment_type",
@@ -558,7 +627,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "manufacturer",
@@ -566,7 +636,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "energy_type",
@@ -574,7 +645,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "specification_text",
@@ -582,7 +654,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "scale_desc",
@@ -590,7 +663,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -598,7 +672,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -606,7 +681,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -614,7 +690,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -622,9 +699,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "equipment_category",
@@ -637,7 +716,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "category_code",
@@ -645,7 +725,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "category_name",
@@ -653,7 +734,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "parent_id",
@@ -661,7 +743,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "equipment_category.id"
+          "references": "equipment_category.id",
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -669,7 +752,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -677,7 +761,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -685,7 +770,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -693,9 +779,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "equipment_cost_profile",
@@ -708,7 +796,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_id",
@@ -716,7 +805,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "equipment.id"
+          "references": "equipment.id",
+          "module": "????"
         },
         {
           "name": "profile_name",
@@ -724,7 +814,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_number_snapshot",
@@ -732,7 +823,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "manufacturer_snapshot",
@@ -740,7 +832,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "technical_reliability",
@@ -748,7 +841,8 @@
           "data_type": "NUMERIC(10, 6)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "currency_id",
@@ -756,7 +850,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "currency.id"
+          "references": "currency.id",
+          "module": "????"
         },
         {
           "name": "acquisition_value",
@@ -764,7 +859,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "number_of_equipment",
@@ -772,7 +868,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "annual_production_hours",
@@ -780,7 +877,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_efficiency",
@@ -788,7 +886,8 @@
           "data_type": "NUMERIC(10, 6)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "installation_expenses",
@@ -796,7 +895,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "foundation_expenses",
@@ -804,7 +904,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "other_expenses",
@@ -812,7 +913,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "residual_value",
@@ -820,7 +922,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_lifespan_years",
@@ -828,7 +931,8 @@
           "data_type": "NUMERIC(10, 2)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "estimated_depreciation",
@@ -836,7 +940,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "interest_rate",
@@ -844,7 +949,8 @@
           "data_type": "NUMERIC(10, 6)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "total_area_required",
@@ -852,7 +958,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "production_site_cost",
@@ -860,7 +967,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "rated_power",
@@ -868,7 +976,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "electricity_usage_ratio",
@@ -876,7 +985,8 @@
           "data_type": "NUMERIC(10, 6)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "power_cost_electricity",
@@ -884,7 +994,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "maintenance_cost",
@@ -892,7 +1003,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "auxiliary_material_cost",
@@ -900,7 +1012,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "total_fixed_cost",
@@ -908,7 +1021,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "total_variable_cost",
@@ -916,7 +1030,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "cost_per_unit_time",
@@ -924,7 +1039,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "hourly_rate",
@@ -932,7 +1048,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_cost",
@@ -940,7 +1057,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "investment",
@@ -948,7 +1066,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "asset_status",
@@ -956,7 +1075,8 @@
           "data_type": "VARCHAR(32)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_from",
@@ -964,7 +1084,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_to",
@@ -972,7 +1093,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -980,7 +1102,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -988,7 +1111,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -996,7 +1120,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1004,9 +1129,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "equipment_rate",
@@ -1019,7 +1146,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "rate_code",
@@ -1027,7 +1155,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_id",
@@ -1035,7 +1164,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "equipment.id"
+          "references": "equipment.id",
+          "module": "????"
         },
         {
           "name": "equipment_category_id",
@@ -1043,7 +1173,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "equipment_category.id"
+          "references": "equipment_category.id",
+          "module": "????"
         },
         {
           "name": "description",
@@ -1051,7 +1182,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_type",
@@ -1059,7 +1191,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "manpower",
@@ -1067,7 +1200,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "labor_group",
@@ -1075,7 +1209,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "direct_labor",
@@ -1083,7 +1218,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "direct_fringe",
@@ -1091,7 +1227,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "indirect_labor",
@@ -1099,7 +1236,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "indirect_fringe",
@@ -1107,7 +1245,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "total_labor",
@@ -1115,7 +1254,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "depreciation",
@@ -1123,7 +1263,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "insurance",
@@ -1131,7 +1272,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "floor_space",
@@ -1139,7 +1281,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "mro_labor",
@@ -1147,7 +1290,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "utilities",
@@ -1155,7 +1299,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "indirect_materials",
@@ -1163,7 +1308,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "other_burden",
@@ -1171,7 +1317,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "total_burden",
@@ -1179,7 +1326,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "total_minute_rate",
@@ -1187,7 +1335,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "investment",
@@ -1195,7 +1344,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "currency_id",
@@ -1203,7 +1353,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "currency.id"
+          "references": "currency.id",
+          "module": "????"
         },
         {
           "name": "effective_from",
@@ -1211,7 +1362,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_to",
@@ -1219,7 +1371,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -1227,7 +1380,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -1235,7 +1389,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1243,7 +1398,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1251,9 +1407,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "equipment_specification",
@@ -1266,7 +1424,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "equipment_id",
@@ -1274,7 +1433,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "equipment.id"
+          "references": "equipment.id",
+          "module": "????"
         },
         {
           "name": "spec_key",
@@ -1282,7 +1442,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "spec_value",
@@ -1290,7 +1451,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "spec_unit_id",
@@ -1298,7 +1460,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "????"
         },
         {
           "name": "sort_no",
@@ -1306,7 +1469,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1314,7 +1478,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1322,9 +1487,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "material",
@@ -1337,7 +1504,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "material_code",
@@ -1345,7 +1513,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "material_name",
@@ -1353,7 +1522,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "category_id",
@@ -1361,7 +1531,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "material_category.id"
+          "references": "material_category.id",
+          "module": "????"
         },
         {
           "name": "density",
@@ -1369,7 +1540,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "density_unit_id",
@@ -1377,7 +1549,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "????"
         },
         {
           "name": "default_quantity_unit_id",
@@ -1385,7 +1558,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "????"
         },
         {
           "name": "scrap_material_id",
@@ -1393,7 +1567,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "material.id"
+          "references": "material.id",
+          "module": "????"
         },
         {
           "name": "specification",
@@ -1401,7 +1576,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -1409,7 +1585,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -1417,7 +1594,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1425,7 +1603,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1433,9 +1612,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "material_category",
@@ -1448,7 +1629,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "category_code",
@@ -1456,7 +1638,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "category_name",
@@ -1464,7 +1647,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "category_type",
@@ -1472,7 +1656,8 @@
           "data_type": "VARCHAR(32)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "parent_id",
@@ -1480,7 +1665,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "material_category.id"
+          "references": "material_category.id",
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -1488,7 +1674,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -1496,7 +1683,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1504,7 +1692,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1512,9 +1701,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "material_price",
@@ -1527,7 +1718,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "material_id",
@@ -1535,7 +1727,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "material.id"
+          "references": "material.id",
+          "module": "????"
         },
         {
           "name": "region_id",
@@ -1543,7 +1736,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "region.id"
+          "references": "region.id",
+          "module": "????"
         },
         {
           "name": "supplier_name",
@@ -1551,7 +1745,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "currency_id",
@@ -1559,7 +1754,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "currency.id"
+          "references": "currency.id",
+          "module": "????"
         },
         {
           "name": "price_unit_id",
@@ -1567,7 +1763,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "????"
         },
         {
           "name": "unit_price",
@@ -1575,7 +1772,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_from",
@@ -1583,7 +1781,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_to",
@@ -1591,7 +1790,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "source_name",
@@ -1599,7 +1799,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -1607,7 +1808,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -1615,7 +1817,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1623,7 +1826,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1631,9 +1835,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "material_type",
@@ -1646,7 +1852,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "material_type_code",
@@ -1654,7 +1861,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "material_type_name",
@@ -1662,7 +1870,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "description",
@@ -1670,7 +1879,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -1678,7 +1888,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -1686,7 +1897,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1694,7 +1906,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1702,9 +1915,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "part",
@@ -1717,7 +1932,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_number",
@@ -1725,7 +1941,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_name",
@@ -1733,7 +1950,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_description",
@@ -1741,7 +1959,8 @@
           "data_type": "TEXT",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_type",
@@ -1749,7 +1968,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "material_category_id",
@@ -1757,7 +1977,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "material_category.id"
+          "references": "material_category.id",
+          "module": "????"
         },
         {
           "name": "material_type_id",
@@ -1765,7 +1986,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "material_type.id"
+          "references": "material_type.id",
+          "module": "????"
         },
         {
           "name": "preferred_material_id",
@@ -1773,7 +1995,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "material.id"
+          "references": "material.id",
+          "module": "????"
         },
         {
           "name": "quantity_unit_id",
@@ -1781,7 +2004,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "????"
         },
         {
           "name": "surface_area",
@@ -1789,7 +2013,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "volume",
@@ -1797,7 +2022,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "cad_file_url",
@@ -1805,7 +2031,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "target_url",
@@ -1813,7 +2040,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "legacy_result",
@@ -1821,7 +2049,8 @@
           "data_type": "TEXT",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "legacy_msg",
@@ -1829,7 +2058,8 @@
           "data_type": "TEXT",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "lifecycle_status",
@@ -1837,7 +2067,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "process_type",
@@ -1845,7 +2076,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_version",
@@ -1853,7 +2085,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "version_no",
@@ -1861,7 +2094,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -1869,7 +2103,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -1877,7 +2112,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1885,7 +2121,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -1893,9 +2130,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "part_attachment",
@@ -1908,7 +2147,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "part_id",
@@ -1916,7 +2156,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "part.id"
+          "references": "part.id",
+          "module": "????"
         },
         {
           "name": "file_name",
@@ -1924,7 +2165,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "file_url",
@@ -1932,7 +2174,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "file_type",
@@ -1940,7 +2183,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "file_size",
@@ -1948,7 +2192,8 @@
           "data_type": "BIGINT",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "source_type",
@@ -1956,7 +2201,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -1964,9 +2210,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "region",
@@ -1979,7 +2227,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "region_code",
@@ -1987,7 +2236,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "region_name",
@@ -1995,7 +2245,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "region_type",
@@ -2003,7 +2254,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "parent_id",
@@ -2011,7 +2263,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "region.id"
+          "references": "region.id",
+          "module": "?????"
         },
         {
           "name": "level_no",
@@ -2019,7 +2272,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "full_name",
@@ -2027,7 +2281,8 @@
           "data_type": "VARCHAR(512)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "is_active",
@@ -2035,7 +2290,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "remark",
@@ -2043,7 +2299,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "created_at",
@@ -2051,7 +2308,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "updated_at",
@@ -2059,9 +2317,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         }
-      ]
+      ],
+      "module": "?????"
     },
     {
       "table_name": "region_cost_profile",
@@ -2074,7 +2334,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "profile_code",
@@ -2082,7 +2343,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "profile_name",
@@ -2090,7 +2352,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "region_id",
@@ -2098,7 +2361,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "region.id"
+          "references": "region.id",
+          "module": "????"
         },
         {
           "name": "supplier_name",
@@ -2106,7 +2370,8 @@
           "data_type": "VARCHAR(128)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "supplier_code",
@@ -2114,7 +2379,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "currency_id",
@@ -2122,7 +2388,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "currency.id"
+          "references": "currency.id",
+          "module": "????"
         },
         {
           "name": "operating_worker_rate",
@@ -2130,7 +2397,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "skilled_worker_rate",
@@ -2138,7 +2406,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "transfer_technician_rate",
@@ -2146,7 +2415,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "production_leader_rate",
@@ -2154,7 +2424,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "inspector_rate",
@@ -2162,7 +2433,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "engineer_rate",
@@ -2170,7 +2442,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "mold_fitter_rate",
@@ -2178,7 +2451,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "cost_interest_rate",
@@ -2186,7 +2460,8 @@
           "data_type": "NUMERIC(10, 6)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "benefits_one_shift",
@@ -2194,7 +2469,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "benefits_two_shift",
@@ -2202,7 +2478,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "benefits_three_shift",
@@ -2210,7 +2487,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "factory_rent",
@@ -2218,7 +2496,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "office_fee",
@@ -2226,7 +2505,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "electricity_fee",
@@ -2234,7 +2514,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "water_fee",
@@ -2242,7 +2523,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "gas_fee",
@@ -2250,7 +2532,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_from",
@@ -2258,7 +2541,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "effective_to",
@@ -2266,7 +2550,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "is_active",
@@ -2274,7 +2559,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "remark",
@@ -2282,7 +2568,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "created_at",
@@ -2290,7 +2577,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         },
         {
           "name": "updated_at",
@@ -2298,9 +2586,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "????"
         }
-      ]
+      ],
+      "module": "????"
     },
     {
       "table_name": "unit",
@@ -2313,7 +2603,8 @@
           "data_type": "INTEGER",
           "is_primary_key": true,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "unit_code",
@@ -2321,7 +2612,8 @@
           "data_type": "VARCHAR(32)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "unit_name",
@@ -2329,7 +2621,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "unit_display_name",
@@ -2337,7 +2630,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "unit_category",
@@ -2345,7 +2639,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "measurement_system",
@@ -2353,7 +2648,8 @@
           "data_type": "VARCHAR(64)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "base_unit_id",
@@ -2361,7 +2657,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": true,
-          "references": "unit.id"
+          "references": "unit.id",
+          "module": "?????"
         },
         {
           "name": "unit_factor",
@@ -2369,7 +2666,8 @@
           "data_type": "NUMERIC(20, 8)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "sync_time",
@@ -2377,7 +2675,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "is_active",
@@ -2385,7 +2684,8 @@
           "data_type": "INTEGER",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "remark",
@@ -2393,7 +2693,8 @@
           "data_type": "VARCHAR(255)",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "created_at",
@@ -2401,7 +2702,8 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         },
         {
           "name": "updated_at",
@@ -2409,9 +2711,11 @@
           "data_type": "DATETIME",
           "is_primary_key": false,
           "is_foreign_key": false,
-          "references": null
+          "references": null,
+          "module": "?????"
         }
-      ]
+      ],
+      "module": "?????"
     }
   ]
 }

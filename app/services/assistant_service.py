@@ -1,15 +1,27 @@
 import json
 import os
 import re
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
 import requests
 from fastapi import HTTPException, status
+from sqlalchemy import func, select
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.models.bom import Bom
+from app.models.bom_item import BomItem
+from app.models.cost_item import CostItem
+from app.models.currency import Currency
+from app.models.material import Material
+from app.models.material_category import MaterialCategory
+from app.models.material_type import MaterialType
+from app.models.part import Part
+from app.models.unit import Unit
 
 
 class AssistantService:
@@ -26,6 +38,7 @@ class AssistantService:
             "features": [
                 "系统操作指南问答",
                 "元数据与数据地图检索解释",
+                "通过聊天框导入结构化工作流数据",
                 "零件/BOM/成本计算结果分析建议",
                 "按当前页面上下文回答",
             ],
@@ -45,6 +58,7 @@ class AssistantService:
 
         context_data = dict(context or {})
         metadata_context = self._metadata_context(clean_message)
+        workflow_import = self._workflow_import_by_message(clean_message)
         runtime_context = self._runtime_snapshot() if use_runtime_snapshot else {}
         part_context = self._part_context(context_data)
         explicit_lookup = self._lookup_cost_by_message(clean_message)
@@ -57,6 +71,7 @@ class AssistantService:
             "explicit_part_cost_lookup": explicit_lookup,
             "entity_hits": entity_hits,
             "metadata_tables": metadata_context.get("table_names", []),
+            "workflow_import": workflow_import,
         }
 
         direct_answer = self._direct_answer_by_message(clean_message, context_used)
@@ -190,6 +205,7 @@ class AssistantService:
             "你是零件成本管理系统内嵌AI助手。"
             "你的职责是帮助用户理解系统功能、数据含义、操作路径，并解释成本结果。"
             "必须基于给定上下文回答，不得编造不存在的表、字段或业务流程。"
+            "当用户粘贴结构化JSON工作流数据时，系统会先尝试写入主数据、零件、BOM和成本记录，你需要解释导入结果。"
             "如果上下文不足，请明确指出并给出下一步建议。"
             "回答尽量结构化、简洁、可执行，默认使用中文。"
             "涉及成本建议时，优先给出可落地动作，例如“优先优化材料损耗率”并说明依据。"
@@ -261,6 +277,7 @@ class AssistantService:
                         "fk": bool(f.get("is_foreign_key")),
                         "references": f.get("references"),
                         "description": f.get("description"),
+                        "module": f.get("module") or t.get("module"),
                     }
                 )
             slim_tables.append(
@@ -268,10 +285,344 @@ class AssistantService:
                     "table_name": t.get("table_name"),
                     "table_display_name": t.get("table_display_name"),
                     "table_description": t.get("table_description"),
+                    "module": t.get("module"),
                     "fields": slim_fields,
                 }
             )
         return {"tables": slim_tables, "table_names": [t.get("table_name") for t in slim_tables]}
+
+    def _workflow_import_by_message(self, message: str) -> dict[str, Any] | None:
+        data = self._extract_workflow_payload(message)
+        if not data:
+            return None
+
+        if "workflow_data" in data and isinstance(data["workflow_data"], dict):
+            data = data["workflow_data"]
+        if "data" in data and isinstance(data["data"], dict):
+            data = data["data"]
+
+        accepted_keys = {
+            "units",
+            "currencies",
+            "material_types",
+            "material_categories",
+            "materials",
+            "parts",
+            "boms",
+            "bom_items",
+            "cost_items",
+        }
+        if not any(k in data for k in accepted_keys):
+            return None
+
+        result: dict[str, Any] = {"created": {}, "skipped": {}, "errors": []}
+
+        def _bump(bucket: str, name: str) -> None:
+            result[bucket][name] = int(result[bucket].get(name, 0)) + 1
+
+        try:
+            for row in self._as_list(data.get("units")):
+                code = self._clean_str(row.get("unit_code") or row.get("code"))
+                if not code:
+                    result["errors"].append("单位缺少 unit_code")
+                    continue
+                obj = self.db.scalars(select(Unit).where(Unit.unit_code == code)).first()
+                if obj:
+                    _bump("skipped", "units")
+                    continue
+                self.db.add(
+                    Unit(
+                        unit_code=code,
+                        unit_name=self._clean_str(row.get("unit_name") or row.get("name") or code),
+                        unit_display_name=self._clean_str(row.get("unit_display_name") or row.get("display_name")),
+                        unit_category=self._clean_str(row.get("unit_category") or row.get("category") or "数量"),
+                        measurement_system=self._clean_str(row.get("measurement_system")),
+                        unit_factor=self._decimal(row.get("unit_factor"), Decimal("1")),
+                        is_active=1 if row.get("is_active", True) else 0,
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "units")
+
+            for row in self._as_list(data.get("currencies")):
+                code = self._clean_str(row.get("currency_code") or row.get("code"))
+                if not code:
+                    result["errors"].append("币种缺少 currency_code")
+                    continue
+                obj = self.db.scalars(select(Currency).where(Currency.currency_code == code)).first()
+                if obj:
+                    _bump("skipped", "currencies")
+                    continue
+                self.db.add(
+                    Currency(
+                        currency_code=code,
+                        currency_name=self._clean_str(row.get("currency_name") or row.get("name") or code),
+                        currency_symbol=self._clean_str(row.get("currency_symbol") or row.get("symbol")),
+                        precision_scale=int(row.get("precision_scale") or 2),
+                        is_base_currency=1 if row.get("is_base_currency", False) else 0,
+                        is_active=1 if row.get("is_active", True) else 0,
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "currencies")
+
+            self.db.flush()
+
+            for row in self._as_list(data.get("material_types")):
+                code = self._clean_str(row.get("material_type_code") or row.get("code"))
+                if not code:
+                    result["errors"].append("物料类型缺少 material_type_code")
+                    continue
+                obj = self.db.scalars(select(MaterialType).where(MaterialType.material_type_code == code)).first()
+                if obj:
+                    _bump("skipped", "material_types")
+                    continue
+                self.db.add(
+                    MaterialType(
+                        material_type_code=code,
+                        material_type_name=self._clean_str(row.get("material_type_name") or row.get("name") or code),
+                        description=self._clean_str(row.get("description")),
+                        is_active=1 if row.get("is_active", True) else 0,
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "material_types")
+
+            for row in self._as_list(data.get("material_categories")):
+                code = self._clean_str(row.get("category_code") or row.get("code"))
+                if not code:
+                    result["errors"].append("物质分类缺少 category_code")
+                    continue
+                obj = self.db.scalars(select(MaterialCategory).where(MaterialCategory.category_code == code)).first()
+                if obj:
+                    _bump("skipped", "material_categories")
+                    continue
+                self.db.add(
+                    MaterialCategory(
+                        category_code=code,
+                        category_name=self._clean_str(row.get("category_name") or row.get("name") or code),
+                        category_type=self._clean_str(row.get("category_type") or "SUBSTANCE"),
+                        is_active=1 if row.get("is_active", True) else 0,
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "material_categories")
+
+            self.db.flush()
+
+            for row in self._as_list(data.get("materials")):
+                code = self._clean_str(row.get("material_code") or row.get("code"))
+                if not code:
+                    result["errors"].append("物质缺少 material_code")
+                    continue
+                obj = self.db.scalars(select(Material).where(Material.material_code == code)).first()
+                if obj:
+                    _bump("skipped", "materials")
+                    continue
+                category_id = self._id_by_code(MaterialCategory, MaterialCategory.category_code, row.get("category_code")) or row.get("category_id")
+                self.db.add(
+                    Material(
+                        material_code=code,
+                        material_name=self._clean_str(row.get("material_name") or row.get("name") or code),
+                        category_id=category_id,
+                        density=self._decimal(row.get("density")),
+                        density_unit_id=self._id_by_code(Unit, Unit.unit_code, row.get("density_unit_code")) or row.get("density_unit_id"),
+                        default_quantity_unit_id=self._id_by_code(Unit, Unit.unit_code, row.get("default_quantity_unit_code")) or row.get("default_quantity_unit_id"),
+                        specification=self._clean_str(row.get("specification")),
+                        is_active=1 if row.get("is_active", True) else 0,
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "materials")
+
+            self.db.flush()
+
+            part_rows = self._as_list(data.get("parts"))
+            for row in part_rows:
+                code = self._clean_str(row.get("part_code") or row.get("part_number") or row.get("code"))
+                if not code:
+                    result["errors"].append("零件缺少 part_code")
+                    continue
+                obj = self.db.scalars(select(Part).where(Part.part_code == code)).first()
+                if obj:
+                    _bump("skipped", "parts")
+                    continue
+                self.db.add(
+                    Part(
+                        part_code=code,
+                        part_name=self._clean_str(row.get("part_name") or row.get("name") or code),
+                        part_description=self._clean_str(row.get("part_description") or row.get("description")),
+                        part_type=self._clean_str(row.get("part_type") or row.get("type")),
+                        material_category_id=self._id_by_code(MaterialCategory, MaterialCategory.category_code, row.get("material_category_code")) or row.get("material_category_id"),
+                        material_type_id=self._id_by_code(MaterialType, MaterialType.material_type_code, row.get("material_type_code")) or row.get("material_type_id"),
+                        preferred_material_id=self._id_by_code(Material, Material.material_code, row.get("preferred_material_code") or row.get("material_code")) or row.get("preferred_material_id"),
+                        quantity_unit_id=self._id_by_code(Unit, Unit.unit_code, row.get("quantity_unit_code") or row.get("unit_code")) or row.get("quantity_unit_id"),
+                        surface_area=self._decimal(row.get("surface_area")),
+                        volume=self._decimal(row.get("volume")),
+                        cad_file_url=self._clean_str(row.get("cad_file_url")),
+                        target_url=self._clean_str(row.get("target_url")),
+                        part_status=self._clean_str(row.get("part_status") or "DRAFT"),
+                        lifecycle_stage=self._clean_str(row.get("lifecycle_stage") or "DESIGN"),
+                        revision_no=self._clean_str(row.get("revision_no") or "A"),
+                        version_no=int(row.get("version_no") or 1),
+                        is_active=1 if row.get("is_active", True) else 0,
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "parts")
+
+            self.db.flush()
+
+            for row in self._as_list(data.get("boms")):
+                code = self._clean_str(row.get("bom_code") or row.get("code"))
+                part_id = self._id_by_code(Part, Part.part_code, row.get("part_code") or row.get("parent_part_code")) or row.get("part_id")
+                if not code or not part_id:
+                    result["errors"].append(f"BOM缺少 bom_code 或父零件: {code or '-'}")
+                    continue
+                obj = self.db.scalars(select(Bom).where(Bom.bom_code == code)).first()
+                if obj:
+                    _bump("skipped", "boms")
+                    continue
+                self.db.add(
+                    Bom(
+                        part_id=part_id,
+                        bom_code=code,
+                        bom_name=self._clean_str(row.get("bom_name") or row.get("name") or code),
+                        version_no=self._clean_str(row.get("version_no") or "V1"),
+                        status=self._clean_str(row.get("status") or "DRAFT"),
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "boms")
+
+            self.db.flush()
+
+            for row in self._as_list(data.get("bom_items")):
+                bom_id = self._id_by_code(Bom, Bom.bom_code, row.get("bom_code")) or row.get("bom_id")
+                child_part_id = self._id_by_code(Part, Part.part_code, row.get("child_part_code") or row.get("part_code")) or row.get("child_part_id")
+                if not bom_id or not child_part_id:
+                    result["errors"].append("BOM明细缺少 bom_code/bom_id 或 child_part_code")
+                    continue
+                child = self.db.get(Part, int(child_part_id))
+                self.db.add(
+                    BomItem(
+                        bom_id=bom_id,
+                        child_part_id=child_part_id,
+                        item_name_snapshot=self._clean_str(row.get("item_name_snapshot")) or (child.part_name if child else None),
+                        item_number_snapshot=self._clean_str(row.get("item_number_snapshot")) or (child.part_code if child else None),
+                        item_version_snapshot=self._clean_str(row.get("item_version_snapshot")) or (child.revision_no if child else None),
+                        quantity=self._decimal(row.get("quantity"), Decimal("1")),
+                        quantity_unit_id=self._id_by_code(Unit, Unit.unit_code, row.get("quantity_unit_code") or row.get("unit_code")) or row.get("quantity_unit_id"),
+                        is_outsourced=1 if row.get("is_outsourced", False) else 0,
+                        sort_no=int(row.get("sort_no") or 1),
+                        remark=self._clean_str(row.get("remark")),
+                    )
+                )
+                _bump("created", "bom_items")
+
+            for part_row in part_rows:
+                cost = part_row.get("cost")
+                if isinstance(cost, dict):
+                    cost.setdefault("part_code", part_row.get("part_code") or part_row.get("part_number") or part_row.get("code"))
+                    if not isinstance(data.get("cost_items"), list):
+                        data["cost_items"] = []
+                    data["cost_items"].append(cost)
+
+            self.db.flush()
+
+            for row in self._as_list(data.get("cost_items")):
+                part_id = self._id_by_code(Part, Part.part_code, row.get("part_code") or row.get("part_number")) or row.get("part_id")
+                currency_id = self._id_by_code(Currency, Currency.currency_code, row.get("currency_code")) or row.get("currency_id")
+                if not part_id or not currency_id:
+                    result["errors"].append("成本记录缺少 part_code/part_id 或 currency_code/currency_id")
+                    continue
+                material_cost = self._decimal(row.get("material_cost"), Decimal("0"))
+                manufacturing_cost = self._decimal(row.get("manufacturing_cost"), Decimal("0"))
+                overhead_cost = self._decimal(row.get("overhead_cost"), Decimal("0"))
+                total_cost = self._decimal(row.get("total_cost"), material_cost + manufacturing_cost + overhead_cost)
+                self.db.add(
+                    CostItem(
+                        id=self._next_bigint_id_for_sqlite(CostItem),
+                        calculation_name=self._clean_str(row.get("calculation_name") or row.get("name") or "AI导入成本计算"),
+                        part_id=part_id,
+                        currency_id=currency_id,
+                        unit_id=self._id_by_code(Unit, Unit.unit_code, row.get("unit_code")) or row.get("unit_id"),
+                        material_cost=material_cost,
+                        manufacturing_cost=manufacturing_cost,
+                        overhead_cost=overhead_cost,
+                        total_cost=total_cost,
+                        rule_version=self._clean_str(row.get("rule_version") or "ai_import_v1"),
+                        trace_detail=json.dumps(row.get("trace_detail") or row, ensure_ascii=False, default=str),
+                        remark=self._clean_str(row.get("remark") or "AI助手结构化导入"),
+                    )
+                )
+                _bump("created", "cost_items")
+
+            if result["created"] or result["skipped"]:
+                self.db.commit()
+                return result
+            self.db.rollback()
+            return None
+        except IntegrityError as exc:
+            self.db.rollback()
+            return {"created": result["created"], "skipped": result["skipped"], "errors": [f"数据库约束冲突: {exc.orig}"]}
+        except Exception as exc:
+            self.db.rollback()
+            return {"created": result["created"], "skipped": result["skipped"], "errors": [f"导入失败: {exc}"]}
+
+    def _extract_workflow_payload(self, message: str) -> dict[str, Any] | None:
+        msg = message.strip()
+        if not any(x in msg for x in ["导入", "录入", "创建", "写入", "workflow_data", "parts", "boms", "cost_items"]):
+            return None
+        candidates = re.findall(r"```(?:json)?\s*([\s\S]*?)```", msg, flags=re.IGNORECASE)
+        candidates.append(msg)
+        for candidate in candidates:
+            text_body = candidate.strip()
+            start = text_body.find("{")
+            end = text_body.rfind("}")
+            if start < 0 or end <= start:
+                continue
+            try:
+                parsed = json.loads(text_body[start : end + 1])
+            except Exception:
+                continue
+            if isinstance(parsed, dict):
+                return parsed
+        return None
+
+    def _as_list(self, value: Any) -> list[dict[str, Any]]:
+        if isinstance(value, list):
+            return [x for x in value if isinstance(x, dict)]
+        if isinstance(value, dict):
+            return [value]
+        return []
+
+    def _clean_str(self, value: Any) -> str | None:
+        if value is None:
+            return None
+        text_value = str(value).strip()
+        return text_value or None
+
+    def _decimal(self, value: Any, default: Decimal | None = None) -> Decimal | None:
+        if value is None or value == "":
+            return default
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, ValueError):
+            return default
+
+    def _id_by_code(self, model: Any, column: Any, code: Any) -> int | None:
+        code_text = self._clean_str(code)
+        if not code_text:
+            return None
+        row = self.db.scalars(select(model).where(column == code_text)).first()
+        return int(row.id) if row is not None else None
+
+    def _next_bigint_id_for_sqlite(self, model: Any) -> int | None:
+        if self.db.get_bind().dialect.name != "sqlite":
+            return None
+        current_max = self.db.execute(select(func.max(model.id))).scalar()
+        return int(current_max or 0) + 1
 
     def _runtime_snapshot(self) -> dict[str, Any]:
         table_names = [
@@ -408,19 +759,22 @@ class AssistantService:
                     return result
 
         # 2) 再按“问题文本包含零件编码/名称”匹配
-        row = self.db.execute(
-            text(
-                """
-                SELECT p.id, p.part_number AS part_code, p.part_name
-                FROM part p
-                WHERE LOWER(:msg) LIKE CONCAT('%', LOWER(p.part_number), '%')
-                   OR LOWER(:msg) LIKE CONCAT('%', LOWER(p.part_name), '%')
-                ORDER BY CHAR_LENGTH(p.part_number) DESC, p.id DESC
-                LIMIT 1
-                """
-            ),
-            {"msg": msg.lower()},
-        ).mappings().first()
+        try:
+            row = self.db.execute(
+                text(
+                    """
+                    SELECT p.id, p.part_number AS part_code, p.part_name
+                    FROM part p
+                    WHERE LOWER(:msg) LIKE CONCAT('%', LOWER(p.part_number), '%')
+                       OR LOWER(:msg) LIKE CONCAT('%', LOWER(p.part_name), '%')
+                    ORDER BY CHAR_LENGTH(p.part_number) DESC, p.id DESC
+                    LIMIT 1
+                    """
+                ),
+                {"msg": msg.lower()},
+            ).mappings().first()
+        except Exception:
+            row = None
         if not row:
             return None
         return self._build_cost_ratio_payload(int(row["id"]))
@@ -757,6 +1111,7 @@ class AssistantService:
         if not msg:
             return None
         hits = context_used.get("entity_hits") or {}
+        workflow_import = context_used.get("workflow_import")
         msg_lower = msg.lower()
         wants_all_parts = bool(
             re.search(r"(所有|全部).{0,6}零件|零件.{0,8}(都列|列表|清单|列出)", msg)
@@ -766,6 +1121,22 @@ class AssistantService:
         wants_all_materials = bool(re.search(r"(所有|全部).{0,4}(物料|材料)|(物料|材料).{0,6}(清单|列表|列出)", msg)) or ("all material" in msg_lower)
         wants_all_equipment = bool(re.search(r"(所有|全部).{0,4}设备|设备.{0,6}(清单|列表|列出)", msg)) or ("all equipment" in msg_lower)
         wants_all_regions = bool(re.search(r"(所有|全部).{0,4}区域|区域.{0,6}(清单|列表|列出)", msg)) or ("all region" in msg_lower)
+
+        if workflow_import:
+            created = workflow_import.get("created") or {}
+            skipped = workflow_import.get("skipped") or {}
+            errors = workflow_import.get("errors") or []
+            created_text = "，".join([f"{k}:{v}" for k, v in created.items()]) or "无"
+            skipped_text = "，".join([f"{k}:{v}" for k, v in skipped.items()]) or "无"
+            error_text = "\n".join([f"- {x}" for x in errors]) if errors else "- 无"
+            return (
+                "已完成 AI 结构化数据录入。\n\n"
+                f"新建记录：{created_text}\n"
+                f"跳过已存在：{skipped_text}\n\n"
+                "异常/提示：\n"
+                f"{error_text}\n\n"
+                "已刷新运行时数据快照，你可以继续让我查询零件、BOM或成本结果。"
+            )
 
         if wants_all_parts:
             rows = hits.get("parts_all") or []
