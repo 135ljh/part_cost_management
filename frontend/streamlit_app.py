@@ -3151,6 +3151,37 @@ def _render_ai_assistant_widget() -> None:
           const K_PANEL = "idme_ai_panel_pos_v3";
           const K_PANEL_SIZE = "idme_ai_panel_size_v3";
           const TH = 4;
+          const EDGE = 10;
+
+          function clamp(n, min, max) {
+            return Math.max(min, Math.min(max, n));
+          }
+
+          function clampRect(left, top, node) {
+            const rect = node.getBoundingClientRect();
+            const w = Math.max(rect.width || 92, 56);
+            const h = Math.max(rect.height || 48, 44);
+            return {
+              left: clamp(left, EDGE, Math.max(EDGE, window.parent.innerWidth - w - EDGE)),
+              top: clamp(top, EDGE, Math.max(EDGE, window.parent.innerHeight - h - EDGE))
+            };
+          }
+
+          function applyPosition(node, left, top, key) {
+            const p = clampRect(left, top, node);
+            node.style.left = p.left + "px";
+            node.style.top = p.top + "px";
+            node.style.right = "auto";
+            node.style.bottom = "auto";
+            node.style.pointerEvents = "auto";
+            if (key) {
+              window.parent.localStorage.setItem(key, JSON.stringify({
+                left: Math.round(p.left),
+                top: Math.round(p.top)
+              }));
+            }
+            return p;
+          }
 
           function findFixedAncestor(el) {
             let p = el;
@@ -3168,10 +3199,7 @@ def _render_ai_assistant_widget() -> None:
             try {
               const d = JSON.parse(raw);
               if (typeof d.left === "number" && typeof d.top === "number") {
-                node.style.left = d.left + "px";
-                node.style.top = d.top + "px";
-                node.style.right = "auto";
-                node.style.bottom = "auto";
+                applyPosition(node, d.left, d.top, key);
               }
             } catch (e) {}
           }
@@ -3206,6 +3234,8 @@ def _render_ai_assistant_widget() -> None:
             handle.dataset.idmeDragBound = "1";
             handle.style.cursor = "grab";
             handle.style.userSelect = "none";
+            handle.style.touchAction = "none";
+            target.style.pointerEvents = "auto";
             restorePosition(target, key);
             if (panelMode) {
               restoreSize(target);
@@ -3223,6 +3253,7 @@ def _render_ai_assistant_widget() -> None:
               baseL = r.left; baseT = r.top;
               down = true; dragging = false;
               handle.style.cursor = "grabbing";
+              e.preventDefault();
               if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
             });
 
@@ -3232,13 +3263,7 @@ def _render_ai_assistant_widget() -> None:
               const dy = e.clientY - sy;
               if (!dragging && Math.hypot(dx, dy) < TH) return;
               dragging = true;
-              const left = baseL + dx;
-              const top = baseT + dy;
-              target.style.left = left + "px";
-              target.style.top = top + "px";
-              target.style.right = "auto";
-              target.style.bottom = "auto";
-              window.parent.localStorage.setItem(key, JSON.stringify({ left, top }));
+              applyPosition(target, baseL + dx, baseT + dy, key);
               e.preventDefault();
             });
 
@@ -3272,6 +3297,23 @@ def _render_ai_assistant_widget() -> None:
             const panelHandle = doc.getElementById("ai-panel-drag-handle");
             if (panelHandle) bindDrag(panelHandle, K_PANEL, true);
           }
+
+          window.parent.addEventListener("resize", function() {
+            const bubbleBtn = Array.from(doc.querySelectorAll("button")).find(
+              b => (b.innerText || "").trim() === "🤖 AI"
+            );
+            const bubble = bubbleBtn ? findFixedAncestor(bubbleBtn) : null;
+            if (bubble) {
+              const r = bubble.getBoundingClientRect();
+              applyPosition(bubble, r.left, r.top, K_BUBBLE);
+            }
+            const panelHandle = doc.getElementById("ai-panel-drag-handle");
+            const panel = panelHandle ? findFixedAncestor(panelHandle) : null;
+            if (panel) {
+              const r = panel.getBoundingClientRect();
+              applyPosition(panel, r.left, r.top, K_PANEL);
+            }
+          });
 
           setTimeout(bindAll, 120);
           setTimeout(bindAll, 600);
