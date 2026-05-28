@@ -623,9 +623,14 @@ def _cached_get(base: str, path: str, token: int) -> tuple[bool, Any]:
     except requests.RequestException as exc:
         return False, str(exc)
 
-def _request(method: str, path: str, payload: dict[str, Any] | None = None) -> tuple[bool, Any]:
+def _request(
+    method: str,
+    path: str,
+    payload: dict[str, Any] | None = None,
+    timeout: float = 20,
+) -> tuple[bool, Any]:
     try:
-        resp = _HTTP.request(method, f"{_base_url()}{path}", json=payload, timeout=20)
+        resp = _HTTP.request(method, f"{_base_url()}{path}", json=payload, timeout=timeout)
         if resp.status_code >= 400:
             try:
                 return False, f"{resp.status_code}: {resp.json()}"
@@ -665,11 +670,78 @@ def _assistant_send_message(message: str) -> tuple[bool, str]:
         "context": _assistant_page_context(),
         "use_runtime_snapshot": True,
     }
-    ok, resp = _request("POST", "/api/v1/assistant/chat", payload)
+    ok, resp = _request("POST", "/api/v1/assistant/chat", payload, timeout=90)
     if not ok:
         return False, str(resp)
     answer = (resp or {}).get("answer") or "助手当前没有返回内容。"
     return True, answer
+
+
+def _ai_format_inline(text: str) -> str:
+    html = escape(text)
+    html = re.sub(r"`([^`]+)`", r"<code>\1</code>", html)
+    html = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", html)
+    html = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", html)
+    return html
+
+
+def _ai_markdown_to_html(text: str) -> str:
+    lines = str(text or "").splitlines()
+    chunks: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
+        stripped = line.strip()
+
+        if not stripped:
+            chunks.append("<div class='ai-md-gap'></div>")
+            i += 1
+            continue
+
+        if stripped.startswith("|") and i + 1 < len(lines) and re.match(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$", lines[i + 1]):
+            table_lines = [stripped]
+            i += 2
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                table_lines.append(lines[i].strip())
+                i += 1
+
+            rows = [
+                [cell.strip() for cell in row.strip("|").split("|")]
+                for row in table_lines
+            ]
+            if rows:
+                head = "".join(f"<th>{_ai_format_inline(cell)}</th>" for cell in rows[0])
+                body_rows = []
+                for row in rows[1:]:
+                    body_rows.append("<tr>" + "".join(f"<td>{_ai_format_inline(cell)}</td>" for cell in row) + "</tr>")
+                chunks.append(f"<div class='ai-md-table-wrap'><table class='ai-md-table'><thead><tr>{head}</tr></thead><tbody>{''.join(body_rows)}</tbody></table></div>")
+            continue
+
+        heading = re.match(r"^(#{1,6})\s+(.+)$", stripped)
+        if heading:
+            level = min(len(heading.group(1)), 3)
+            chunks.append(f"<div class='ai-md-h{level}'>{_ai_format_inline(heading.group(2))}</div>")
+            i += 1
+            continue
+
+        bullet = re.match(r"^(\s*)[-*]\s+(.+)$", line)
+        numbered = re.match(r"^(\s*)(\d+)[.)]\s+(.+)$", line)
+        if bullet or numbered:
+            match = bullet or numbered
+            indent = min(len(match.group(1)) // 2, 4)
+            marker = "•" if bullet else f"{match.group(2)}."
+            content = match.group(2) if bullet else match.group(3)
+            chunks.append(
+                f"<div class='ai-md-li indent-{indent}'><span>{marker}</span><div>{_ai_format_inline(content)}</div></div>"
+            )
+            i += 1
+            continue
+
+        chunks.append(f"<p class='ai-md-p'>{_ai_format_inline(stripped)}</p>")
+        i += 1
+
+    return "".join(chunks)
+
 
 def _clear_cache() -> None:
     st.session_state.reload_token += 1
@@ -2476,7 +2548,6 @@ def _render_home_dashboard() -> None:
     bom_count = counts.get("boms", 0)
     cost_count = counts.get("cost_items", 0)
     attach_count = count_map.get("part_attachments", 0) if "part_attachments" in MODULES else 0
-    health_ok = _backend_ok(_base_url())
 
     k1, k2, k3, k4 = st.columns(4)
     with k1:
@@ -2495,10 +2566,8 @@ def _render_home_dashboard() -> None:
             unsafe_allow_html=True,
         )
     with k4:
-        health_text = "正常" if health_ok else "异常"
-        health_color = "#16a34a" if health_ok else "#dc2626"
         st.markdown(
-            f"<div class='home-kpi'><div class='home-kpi-k'>后端健康状态</div><div class='home-kpi-v' style='color:{health_color}'>{health_text}</div><div class='home-kpi-s'>{_base_url()}</div></div>",
+            f"<div class='home-kpi'><div class='home-kpi-k'>成本计算</div><div class='home-kpi-v'>{cost_count}</div><div class='home-kpi-s'>材料/制造/间接费用分析</div></div>",
             unsafe_allow_html=True,
         )
 
@@ -2819,6 +2888,81 @@ def _render_ai_assistant_widget() -> None:
           color: #0f172a;
           background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.88));
           border: 1px solid rgba(148, 163, 184, 0.34);
+          white-space: normal;
+          font-size: 0.94rem;
+        }
+        .ai-msg.assistant strong {
+          font-weight: 750;
+          color: #0f172a;
+        }
+        .ai-msg.assistant code {
+          padding: 1px 5px;
+          border: 1px solid rgba(148, 163, 184, 0.45);
+          border-radius: 4px;
+          background: rgba(226, 232, 240, 0.72);
+          color: #1e293b;
+          font-family: 'IBM Plex Mono', Consolas, monospace;
+          font-size: 0.86em;
+        }
+        .ai-md-h1, .ai-md-h2, .ai-md-h3 {
+          margin: 10px 0 6px 0;
+          color: #0f172a;
+          font-weight: 780;
+          line-height: 1.35;
+        }
+        .ai-md-h1 { font-size: 1.08rem; }
+        .ai-md-h2 { font-size: 1.02rem; }
+        .ai-md-h3 { font-size: 0.98rem; }
+        .ai-md-p {
+          margin: 5px 0;
+          line-height: 1.62;
+        }
+        .ai-md-gap {
+          height: 6px;
+        }
+        .ai-md-li {
+          display: flex;
+          gap: 8px;
+          margin: 5px 0;
+          line-height: 1.58;
+        }
+        .ai-md-li > span {
+          flex: 0 0 auto;
+          color: #2563eb;
+          font-weight: 700;
+          font-family: 'IBM Plex Mono', Consolas, monospace;
+        }
+        .ai-md-li.indent-1 { margin-left: 16px; }
+        .ai-md-li.indent-2 { margin-left: 32px; }
+        .ai-md-li.indent-3 { margin-left: 48px; }
+        .ai-md-li.indent-4 { margin-left: 64px; }
+        .ai-md-table-wrap {
+          max-width: 100%;
+          overflow-x: auto;
+          margin: 8px 0 10px 0;
+          border: 1px solid rgba(148, 163, 184, 0.38);
+          border-radius: 8px;
+        }
+        .ai-md-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.88rem;
+          background: rgba(255, 255, 255, 0.72);
+        }
+        .ai-md-table th, .ai-md-table td {
+          padding: 7px 9px;
+          border-bottom: 1px solid rgba(203, 213, 225, 0.75);
+          text-align: left;
+          vertical-align: top;
+          white-space: nowrap;
+        }
+        .ai-md-table th {
+          background: rgba(226, 232, 240, 0.72);
+          color: #334155;
+          font-weight: 750;
+        }
+        .ai-md-table tr:last-child td {
+          border-bottom: 0;
         }
         </style>
         """,
@@ -2873,7 +3017,10 @@ def _render_ai_assistant_widget() -> None:
             rows: list[str] = ["<div class='ai-chat-wrap'>"]
             for msg in st.session_state.ai_chat_history[-24:]:
                 role = "user" if msg.get("role") == "user" else "assistant"
-                content = escape(str(msg.get("content", ""))).replace("\n", "<br>")
+                if role == "assistant":
+                    content = _ai_markdown_to_html(str(msg.get("content", "")))
+                else:
+                    content = escape(str(msg.get("content", ""))).replace("\n", "<br>")
                 rows.append(f"<div class='ai-msg-row {role}'><div class='ai-msg {role}'>{content}</div></div>")
             rows.append("</div>")
             st.markdown("".join(rows), unsafe_allow_html=True)
